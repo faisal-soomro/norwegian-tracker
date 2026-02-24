@@ -21,11 +21,19 @@ const DARK = {
   ...SHARED,
 };
 
+// ─── LEARNING MODES ──────────────────────────────────────────────────────────
+const MODES = {
+  skriftlig:     { id: "skriftlig",     label: "Skriftlig",     en: "Writing",         icon: "✍️",    ratio: "100% written" },
+  blandet:       { id: "blandet",       label: "Blandet",       en: "Mixed",           icon: "✍️🗣️", ratio: "50/50 written & spoken" },
+  muntlig_fokus: { id: "muntlig_fokus", label: "Muntlig-fokus", en: "Speaking-focused", icon: "🗣️",   ratio: "75% spoken, 25% written" },
+  muntlig:       { id: "muntlig",       label: "Muntlig",       en: "Full oral",       icon: "🎤",    ratio: "100% spoken" },
+};
+
 const PHASES = [
-  { id: 1, label: "Foundation", subtitle: "Generell B1", weeks: [1, 2, 3], color: SHARED.green },
-  { id: 2, label: "Tech + Norsk", subtitle: "IT + Kultur", weeks: [4, 5, 6], color: SHARED.blue },
-  { id: 3, label: "DevOps + Diskusjon", subtitle: "Ops + Muntlig", weeks: [7, 8, 9], color: SHARED.purple },
-  { id: 4, label: "Avansert + Intervju", subtitle: "SWE + Muntlig Prep", weeks: [10, 11, 12], color: SHARED.gold },
+  { id: 1, label: "Foundation", subtitle: "Skriftlig (Writing)", weeks: [1, 2, 3], color: SHARED.green, mode: "skriftlig" },
+  { id: 2, label: "Tech + Norsk", subtitle: "Blandet (Mixed)", weeks: [4, 5, 6], color: SHARED.blue, mode: "blandet" },
+  { id: 3, label: "DevOps + Diskusjon", subtitle: "Muntlig-fokus", weeks: [7, 8, 9], color: SHARED.purple, mode: "muntlig_fokus" },
+  { id: 4, label: "Avansert + Intervju", subtitle: "Muntlig (Full oral)", weeks: [10, 11, 12], color: SHARED.gold, mode: "muntlig" },
 ];
 
 // ─── CURRICULUM (all 84 unique topics) ───────────────────────────────────────
@@ -172,6 +180,7 @@ const DAY_LAYOUT = [
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 function phaseFor(w) { return PHASES.find(p => p.weeks.includes(w)) || PHASES[0]; }
+function modeFor(w) { return MODES[phaseFor(w).mode]; }
 
 function topicsBefore(week, day, states) {
   const done = [], skipped = [];
@@ -191,14 +200,165 @@ function topicsBefore(week, day, states) {
   return { done, skipped };
 }
 
+// ─── PROMPT BUILDER (mode-aware) ─────────────────────────────────────────────
+const MODE_HEADERS = {
+  skriftlig: "SKRIFTLIG (WRITING)",
+  blandet: "BLANDET (MIXED WRITING + SPEAKING)",
+  muntlig_fokus: "MUNTLIG-FOKUS (SPEAKING-FOCUSED)",
+  muntlig: "MUNTLIG (ORAL)",
+};
+const S3_LABELS = {
+  skriftlig: "WRITTEN REFRESHER",
+  blandet: "MIXED REFRESHER",
+  muntlig_fokus: "ORAL REFRESHER",
+  muntlig: "ORAL REFRESHER",
+};
+
+function buildSessionStructure(mode, L) {
+  const m = mode.id;
+  if (m === "skriftlig") {
+    L.push(`S1 (1h 15min): Learn today's vocab + grammar with WRITING-FIRST exercises. Generate 8–10 written drills: write sentences using new vocab, fill-in-the-blank exercises, construct short paragraphs using new grammar, translate English→Norwegian sentences. Reference NTNU Learn Norwegian or NRK Norskkurs if relevant.`);
+    L.push(`S2 (1h 15min): WRITING PRACTICE — Generate: (a) one short writing prompt (write 80–120 words on a topic using today's vocab), (b) 5 sentence-construction exercises (given keywords, write a complete sentence), (c) one dialogue-writing exercise (write both sides of a realistic conversation using today's grammar).`);
+  } else if (m === "blandet") {
+    L.push(`S1 (1h 15min): Learn today's vocab + grammar with MIXED exercises. Generate 8–10 drills: 4–5 written exercises (write sentences, fill blanks, short paragraphs) + 4–5 spoken exercises (say sentences aloud, describe scenarios verbally). Mark each drill with [SKRIV] or [SI HØYT].`);
+    L.push(`S2 (1h 15min): MIXED PRACTICE — Generate: (a) one written exercise (write a 60–80 word paragraph using today's vocab), (b) one read-aloud exercise (read your paragraph aloud, then improvise a 1-minute spoken extension), (c) 3 simple spoken response questions (answer aloud in 30 seconds each).`);
+  } else if (m === "muntlig_fokus") {
+    L.push(`S1 (1h 15min): Learn today's vocab + grammar with SPEAKING-FOCUSED exercises. Generate 8–10 drills: 6–7 oral (say sentences aloud, describe scenarios, 2-minute mini-monologues) + 2–3 written support (write key phrases, sentence starters, or brief notes before speaking). Mark each with [SI HØYT] or [SKRIV FØRST, SÅ SI].`);
+    L.push(`S2 (1h 15min): SPEAKING PRACTICE — Generate: (a) one realistic role-play scenario with both roles written out, (b) 3 opinion discussion questions for 2-min monologue practice, (c) one simulated paired discussion topic (exam-style). For each, the learner may write 3 bullet-point notes first, then must speak without reading.`);
+  } else {
+    L.push(`S1 (1h 15min): Learn today's vocab + grammar with SPEAKING-FIRST exercises. Generate 8–10 oral drills: say sentences aloud using new vocab, describe scenarios using new grammar, deliver 2-minute mini-monologues on prompted topics. Reference NTNU Learn Norwegian or NRK Norskkurs if relevant.`);
+    L.push(`S2 (1h 15min): SPEAKING PRACTICE — Generate: (a) one realistic role-play scenario with both roles written out, (b) 3 opinion discussion questions for 2-min monologue practice, (c) one simulated paired discussion topic (exam-style, with suggested talking points for each side).`);
+  }
+}
+
+function buildLightSessions(mode, L) {
+  const m = mode.id;
+  if (m === "skriftlig") {
+    L.push(`S1 (35 min): READING + WRITTEN NOTES — Read a "Klar Tale" or NRK article. Write down 5 new words with their meaning. Write 3 sentences using those words.`);
+    L.push(`S2 (35 min): QUICK WRITING DRILLS — Write short answers (2–3 sentences each) to 5 questions related to today's topic. Focus on correct grammar and word order.`);
+  } else if (m === "blandet") {
+    L.push(`S1 (35 min): READING + READ-ALOUD — Read a "Klar Tale" or NRK article. Write down 5 new words, then read the article aloud. Practice pronunciation of the new words.`);
+    L.push(`S2 (35 min): MIXED RESPONSE — Answer 5 questions related to today's topic: write the first 3, speak the last 2 aloud (30–60 seconds each, no writing).`);
+  } else if (m === "muntlig_fokus") {
+    L.push(`S1 (35 min): LISTENING + SHADOWING — Listen to "Klar Tale" or "NRK Nyheter" segment. Shadow (repeat aloud) for at least 10 min. Write down 5 new words heard.`);
+    L.push(`S2 (35 min): QUICK-FIRE SPEAKING — Respond aloud to 5 opinion questions related to today's topic. Aim for 30–60 seconds per answer. No writing — speak only.`);
+  } else {
+    L.push(`S1 (35 min): LISTENING + SHADOWING — Listen to "Klar Tale" or "NRK Nyheter" segment. Shadow (repeat aloud immediately after speaker) for at least 10 min. Note 5 new words heard.`);
+    L.push(`S2 (35 min): QUICK-FIRE SPEAKING — Respond aloud to 5 opinion questions related to today's topic. Aim for 30–60 seconds per answer. No writing — speak only.`);
+  }
+}
+
+function buildReviewSessions(mode, weekNum, L) {
+  const m = mode.id;
+  if (m === "skriftlig") {
+    L.push(`S1 (1 hr): WRITTEN REVIEW — Write a 150–200 word summary in Norwegian covering this week's themes. Use as many keywords from this week as possible. Then write 5 sentences using 5 different grammar points from this week.`);
+    L.push(`S2 (30 min): SELF-ASSESSMENT — Review your written work. Check: spelling, noun genders, verb conjugations, word order (V2 rule). Rate yourself 1–5 on: vocabulary range, grammatical accuracy, sentence complexity, ability to express ideas in writing.`);
+  } else if (m === "blandet") {
+    L.push(`S1 (45 min): WRITTEN + SPOKEN REVIEW — Write a short paragraph (80–100 words) on one of this week's themes, then READ IT ALOUD. Next, answer 3 opinion questions ORALLY (60 seconds each, no notes).`);
+    L.push(`S2 (30 min): SELF-ASSESSMENT — Rate yourself 1–5 on: written accuracy, spoken fluency, pronunciation, vocabulary range, ability to express opinions both in writing and speech. Note which mode (written vs spoken) felt easier.`);
+  } else if (m === "muntlig_fokus") {
+    L.push(`S1 (1 hr): MOCK MUNTLIG EXAM (with notes allowed) — Simulate the Norskprøven B1 muntlig format:`);
+    L.push(`  Part A (3 min): Self-introduction monologue — you may prepare brief written bullet points first, then speak from them.`);
+    L.push(`  Part B (5 min): Opinion question — pick a topic from this week. Write 3 key arguments, then argue the position ORALLY for 2 min, then counter-argue for 2 min.`);
+    L.push(`  Part C (7 min): Paired discussion scenario — write out both roles (Candidate A and B) for an exam-style discussion based on this week's themes.`);
+    L.push(`S2 (30 min): SELF-ASSESSMENT — Rate yourself 1–5 on: fluency, pronunciation, vocabulary range, grammatical accuracy, ability to express opinions. Note specific weak areas.`);
+  } else {
+    L.push(`S1 (1 hr): MOCK MUNTLIG EXAM — Simulate the Norskprøven B1 muntlig format:`);
+    L.push(`  Part A (3 min): Self-introduction monologue — talk about yourself, your background, your interests.`);
+    L.push(`  Part B (5 min): Opinion question — pick a topic from this week and argue a position for 2 min, then counter-argue for 2 min.`);
+    L.push(`  Part C (7 min): Paired discussion scenario — write out both roles (Candidate A and B) for an exam-style discussion based on this week's themes.`);
+    L.push(`S2 (30 min): SELF-ASSESSMENT — Rate yourself 1–5 on: fluency, pronunciation, vocabulary range, grammatical accuracy, ability to express opinions. Note specific weak areas.`);
+  }
+}
+
+function buildRefresher(mode, done, L) {
+  const m = mode.id;
+  const label = S3_LABELS[m];
+
+  L.push(`--- SESSION 3: ${label} (30 min) ---`);
+  if (m === "skriftlig") {
+    L.push(`Spaced repetition on ALL previously completed topics — ALL exercises done in WRITING. Do NOT repeat today's new topics here.`);
+  } else if (m === "blandet") {
+    L.push(`Spaced repetition on ALL previously completed topics — mix of WRITTEN and SPOKEN exercises. Do NOT repeat today's new topics here.`);
+  } else {
+    L.push(`Spaced repetition on ALL previously completed topics — ALL exercises done OUT LOUD. Do NOT repeat today's new topics here.`);
+  }
+
+  if (done.length === 0) {
+    if (m === "skriftlig") {
+      L.push(`(No previous topics yet — skip or use for free writing practice: write 5 sentences about yourself in Norwegian.)`);
+    } else if (m === "blandet") {
+      L.push(`(No previous topics yet — skip or use for free practice: write 3 sentences about yourself, then say 3 more sentences aloud.)`);
+    } else {
+      L.push(`(No previous topics yet — skip or use for free speaking practice: introduce yourself for 2 minutes.)`);
+    }
+  } else {
+    L.push(`Previously completed topics (prioritise the OLDEST for spaced repetition):`);
+    done.forEach((t, i) => L.push(`  ${i + 1}. ${t.t} — kw: ${t.kw.slice(0, 4).join(", ")}`));
+    L.push(`\n${label} structure:`);
+
+    if (m === "skriftlig") {
+      L.push(`  • 5 vocab recall — [SKRIV] the Norwegian word, then write it in a complete sentence (from the oldest 3–4 topics above)`);
+      L.push(`  • 3 grammar written drills — generate a prompt, answer must be a full written sentence using the target grammar (mix of grammar topics from above)`);
+      L.push(`  • 1 short writing prompt (60–80 words) combining vocab from at least 2 different previous topics — give a topic and 3 guiding questions`);
+    } else if (m === "blandet") {
+      L.push(`  • 5 vocab recall — [SKRIV] write 3 in sentences, [SI HØYT] say 2 aloud in sentences (from the oldest 3–4 topics above)`);
+      L.push(`  • 3 grammar drills — 1 written + 2 spoken — generate a prompt, answer must be a full sentence (mix of grammar topics from above)`);
+      L.push(`  • 1 mixed prompt: write 3 bullet points on a topic combining 2 previous topics, then speak for 60 seconds using those notes`);
+    } else {
+      L.push(`  • 5 vocab recall — [SAY ALOUD] the Norwegian word, then use it in a complete spoken sentence (from the oldest 3–4 topics above)`);
+      L.push(`  • 3 grammar spoken drills — generate a prompt, answer must be a full spoken sentence using the target grammar (mix of grammar topics from above)`);
+      L.push(`  • 1 impromptu speaking prompt (60–90 seconds) combining vocab from at least 2 different previous topics — give a topic and 3 guiding questions to structure the response`);
+    }
+  }
+}
+
+function buildInstructions(mode, L) {
+  const m = mode.id;
+  L.push(`--- INSTRUCTIONS ---`);
+
+  if (m === "skriftlig") {
+    L.push(`Generate the full detailed plan. This is a SKRIFTLIG (writing) focused program. All exercises should be designed to be completed in writing.`);
+    L.push(`For vocab: Norwegian word + English meaning + example WRITTEN sentence + note on spelling/gender.`);
+    L.push(`For grammar: brief rule explanation, then 5–8 WRITTEN sentence drills (the learner writes these — include the prompt and expected written answer).`);
+    L.push(`For S2 writing practice: Generate realistic writing exercises with model answers. For sentence construction, provide keywords and expected output. For dialogues, write out both roles as a written dialogue.`);
+    L.push(`For the written refresher: actually write out the specific questions and prompts — don't describe them generically. Mark each one with [SKRIV].`);
+    L.push(`Important: Frame all exercises as things to WRITE. Use prompts like "Skriv:", "Oversett:", "Fullfør setningen:", "Skriv et avsnitt:".`);
+  } else if (m === "blandet") {
+    L.push(`Generate the full detailed plan. This is a BLANDET (mixed writing + speaking) program. Exercises alternate between written and spoken.`);
+    L.push(`For vocab: Norwegian word + English meaning + example sentence + pronunciation hint. Learner writes the word 3 times, then says it aloud in a sentence.`);
+    L.push(`For grammar: brief rule explanation, then 5–8 drills — alternate between [SKRIV] written drills and [SI HØYT] spoken drills.`);
+    L.push(`For S2 mixed practice: Generate a writing exercise followed by a read-aloud exercise, plus spoken response questions. Mark each clearly with [SKRIV] or [SI HØYT].`);
+    L.push(`For the mixed refresher: actually write out the specific questions and prompts — don't describe them generically. Mark each with [SKRIV] or [SI HØYT].`);
+    L.push(`Important: Clearly label each exercise as written or spoken. Use "Skriv:" for written and "Si høyt:" for spoken prompts.`);
+  } else if (m === "muntlig_fokus") {
+    L.push(`Generate the full detailed plan. This is a MUNTLIG-FOKUS (speaking-focused) program. Most exercises are oral, with some written preparation support.`);
+    L.push(`For vocab: Norwegian word + English meaning + example SPOKEN sentence + pronunciation hint (stress pattern or tricky sounds).`);
+    L.push(`For grammar: brief rule explanation, then 5–8 drills — mostly spoken [SI HØYT] with 1–2 written preparation notes [SKRIV FØRST, SÅ SI].`);
+    L.push(`For S2 speaking practice: Generate realistic role-play scenarios. The learner may write 3 bullet-point notes first, then must speak without reading. Mark key exercises with [SI HØYT].`);
+    L.push(`For the oral refresher: actually write out the specific questions and prompts — don't describe them generically. Mark each one with [SI HØYT].`);
+    L.push(`Important: Frame most exercises as things to SAY, with occasional written notes as scaffolding. Use "Si høyt:", "Svar muntlig:", "Skriv stikkord, så forklar muntlig:".`);
+  } else {
+    L.push(`Generate the full detailed plan. This is a MUNTLIG (oral/speaking) focused program. All exercises should be designed to be spoken aloud, not written.`);
+    L.push(`For vocab: Norwegian word + English meaning + example SPOKEN sentence + pronunciation hint (stress pattern or tricky sounds).`);
+    L.push(`For grammar: brief rule explanation, then 5–8 SPOKEN sentence drills (the learner says these aloud — include the prompt and expected spoken answer).`);
+    L.push(`For S2 speaking practice: Generate realistic, detailed role-play scenarios with both roles written out. For opinion questions, provide the question and 3–4 useful phrases/sentence starters. For discussion topics, give both sides with suggested arguments.`);
+    L.push(`For the oral refresher: actually write out the specific questions and prompts — don't describe them generically. Mark each one with [SAY ALOUD].`);
+    L.push(`Important: Frame all exercises as things to SAY, not WRITE. Use prompts like "Si høyt:", "Svar muntlig:", "Forklar muntlig:", "Beskriv med ord:".`);
+  }
+}
+
 function buildPrompt(week, dayIdx, states) {
   const phase = phaseFor(week), wd = CUR[week], layout = DAY_LAYOUT[dayIdx];
   const dd = wd.days[dayIdx], isReview = dayIdx === 6, isLight = layout.type === "light";
+  const mode = modeFor(week);
   const { done, skipped } = topicsBefore(week, dayIdx, states);
   const L = [];
-  L.push(`=== NORWEGIAN B1 MUNTLIG (ORAL) DAILY LESSON PLAN ===`);
+
+  L.push(`=== NORWEGIAN B1 ${MODE_HEADERS[mode.id]} DAILY LESSON PLAN ===`);
   L.push(`Week ${week} · Day ${dayIdx + 1} (${layout.day}) · ${isLight ? "Light Day (mobile-friendly)" : isReview ? "Weekly Review" : "Full PC Day"}`);
   L.push(`Phase: ${phase.label} — ${phase.subtitle}`);
+  L.push(`Learning Mode: ${mode.label} (${mode.en}) — ${mode.ratio}`);
   L.push(`Week Theme: ${wd.theme} — ${wd.focus}\n`);
 
   if (!isReview && dd) {
@@ -210,33 +370,16 @@ function buildPrompt(week, dayIdx, states) {
 
   L.push(`--- SESSION STRUCTURE ---`);
   if (isReview) {
-    L.push(`S1 (1 hr): MOCK MUNTLIG EXAM — Simulate the Norskprøven B1 muntlig format:`);
-    L.push(`  Part A (3 min): Self-introduction monologue — talk about yourself, your background, your interests.`);
-    L.push(`  Part B (5 min): Opinion question — pick a topic from this week and argue a position for 2 min, then counter-argue for 2 min.`);
-    L.push(`  Part C (7 min): Paired discussion scenario — write out both roles (Candidate A and B) for an exam-style discussion based on this week's themes.`);
-    L.push(`S2 (30 min): SELF-ASSESSMENT — Rate yourself 1–5 on: fluency, pronunciation, vocabulary range, grammatical accuracy, ability to express opinions. Note specific weak areas.`);
+    buildReviewSessions(mode, week, L);
   } else if (isLight) {
-    L.push(`S1 (35 min): LISTENING + SHADOWING — Listen to "Klar Tale" or "NRK Nyheter" segment. Shadow (repeat aloud immediately after speaker) for at least 10 min. Note 5 new words heard.`);
-    L.push(`S2 (35 min): QUICK-FIRE SPEAKING — Respond aloud to 5 opinion questions related to today's topic. Aim for 30–60 seconds per answer. No writing — speak only.`);
+    buildLightSessions(mode, L);
   } else {
-    L.push(`S1 (1h 15min): Learn today's vocab + grammar with SPEAKING-FIRST exercises. Generate 8–10 oral drills: say sentences aloud using new vocab, describe scenarios using new grammar, deliver 2-minute mini-monologues on prompted topics. Reference NTNU Learn Norwegian or NRK Norskkurs if relevant.`);
-    L.push(`S2 (1h 15min): SPEAKING PRACTICE — Generate: (a) one realistic role-play scenario with both roles written out, (b) 3 opinion discussion questions for 2-min monologue practice, (c) one simulated paired discussion topic (exam-style, with suggested talking points for each side).`);
+    buildSessionStructure(mode, L);
   }
-  L.push(`S3 (30 min): ORAL REFRESHER — see below.\n`);
+  L.push(`S3 (30 min): ${S3_LABELS[mode.id]} — see below.\n`);
 
-  // ── Oral Refresher ──
-  L.push(`--- SESSION 3: ORAL REFRESHER (30 min) ---`);
-  L.push(`Spaced repetition on ALL previously completed topics — ALL exercises done OUT LOUD. Do NOT repeat today's new topics here.`);
-  if (done.length === 0) {
-    L.push(`(No previous topics yet — skip or use for free speaking practice: introduce yourself for 2 minutes.)`);
-  } else {
-    L.push(`Previously completed topics (prioritise the OLDEST for spaced repetition):`);
-    done.forEach((t, i) => L.push(`  ${i + 1}. ${t.t} — kw: ${t.kw.slice(0, 4).join(", ")}`));
-    L.push(`\nOral Refresher structure:`);
-    L.push(`  • 5 vocab recall — [SAY ALOUD] the Norwegian word, then use it in a complete spoken sentence (from the oldest 3–4 topics above)`);
-    L.push(`  • 3 grammar spoken drills — generate a prompt, answer must be a full spoken sentence using the target grammar (mix of grammar topics from above)`);
-    L.push(`  • 1 impromptu speaking prompt (60–90 seconds) combining vocab from at least 2 different previous topics — give a topic and 3 guiding questions to structure the response`);
-  }
+  // ── Refresher ──
+  buildRefresher(mode, done, L);
   L.push(``);
 
   if (skipped.length > 0) {
@@ -245,13 +388,7 @@ function buildPrompt(week, dayIdx, states) {
     L.push(``);
   }
 
-  L.push(`--- INSTRUCTIONS ---`);
-  L.push(`Generate the full detailed plan. This is a MUNTLIG (oral/speaking) focused program. All exercises should be designed to be spoken aloud, not written.`);
-  L.push(`For vocab: Norwegian word + English meaning + example SPOKEN sentence + pronunciation hint (stress pattern or tricky sounds).`);
-  L.push(`For grammar: brief rule explanation, then 5–8 SPOKEN sentence drills (the learner says these aloud — include the prompt and expected spoken answer).`);
-  L.push(`For S2 speaking practice: Generate realistic, detailed role-play scenarios with both roles written out. For opinion questions, provide the question and 3–4 useful phrases/sentence starters. For discussion topics, give both sides with suggested arguments.`);
-  L.push(`For the oral refresher: actually write out the specific questions and prompts — don't describe them generically. Mark each one with [SAY ALOUD].`);
-  L.push(`Important: Frame all exercises as things to SAY, not WRITE. Use prompts like "Si høyt:", "Svar muntlig:", "Forklar muntlig:", "Beskriv med ord:".`);
+  buildInstructions(mode, L);
   return L.join("\n");
 }
 
@@ -278,12 +415,35 @@ function TopicChip({ topic, state, onToggle, C }) {
   );
 }
 
+// ─── SESSION SUMMARY HELPER ──────────────────────────────────────────────────
+function SessionSummary({ mode, isLight, isReview }) {
+  const m = mode.id;
+  if (isLight) {
+    if (m === "skriftlig") return <>{`S1 (35 min) Reading + written notes`}<br />{`S2 (35 min) Quick writing drills`}<br />{`S3 (30 min) Written Refresher ✍️`}</>;
+    if (m === "blandet") return <>{`S1 (35 min) Reading + read-aloud`}<br />{`S2 (35 min) Mixed response (write + speak)`}<br />{`S3 (30 min) Mixed Refresher ✍️🗣️`}</>;
+    if (m === "muntlig_fokus") return <>{`S1 (35 min) Listening + shadowing`}<br />{`S2 (35 min) Quick-fire speaking`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
+    return <>{`S1 (35 min) Listening + shadowing`}<br />{`S2 (35 min) Quick-fire speaking`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
+  }
+  if (isReview) {
+    if (m === "skriftlig") return <>{`S1 (1 hr)   Written review + summary`}<br />{`S2 (30 min) Self-assessment (written)`}<br />{`S3 (30 min) Written Refresher ✍️`}</>;
+    if (m === "blandet") return <>{`S1 (45 min) Written + spoken review`}<br />{`S2 (30 min) Self-assessment (mixed)`}<br />{`S3 (30 min) Mixed Refresher ✍️🗣️`}</>;
+    if (m === "muntlig_fokus") return <>{`S1 (1 hr)   Mock muntlig (notes OK)`}<br />{`S2 (30 min) Fluency self-assessment`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
+    return <>{`S1 (1 hr)   Mock muntlig exam`}<br />{`S2 (30 min) Fluency self-assessment`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
+  }
+  // heavy
+  if (m === "skriftlig") return <>{`S1 (1h 15m) Vocab + grammar (written drills)`}<br />{`S2 (1h 15m) Writing practice + dialogues`}<br />{`S3 (30 min) Written Refresher ✍️`}</>;
+  if (m === "blandet") return <>{`S1 (1h 15m) Vocab + grammar (write + speak)`}<br />{`S2 (1h 15m) Mixed practice (write then speak)`}<br />{`S3 (30 min) Mixed Refresher ✍️🗣️`}</>;
+  if (m === "muntlig_fokus") return <>{`S1 (1h 15m) Vocab + grammar (speaking-focused)`}<br />{`S2 (1h 15m) Role-play + monologues`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
+  return <>{`S1 (1h 15m) Vocab + grammar (oral drills)`}<br />{`S2 (1h 15m) Role-play + monologues`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
+}
+
 // ─── DAY CARD ────────────────────────────────────────────────────────────────
 function DayCard({ weekNum, dayIdx, topicStates, daysDone, onDayToggle, onTopicToggle, C }) {
   const [open, setOpen] = useState(false);
   const [showP, setShowP] = useState(false);
   const [copied, setCopied] = useState(false);
   const layout = DAY_LAYOUT[dayIdx], phase = phaseFor(weekNum);
+  const mode = modeFor(weekNum);
   const dd = CUR[weekNum]?.days[dayIdx];
   const isReview = dayIdx === 6, isLight = layout.type === "light";
   const isDone = !!(daysDone[weekNum] && daysDone[weekNum][dayIdx]);
@@ -316,9 +476,7 @@ function DayCard({ weekNum, dayIdx, topicStates, daysDone, onDayToggle, onTopicT
           <div style={{ background: C.surfaceHi, borderRadius: 8, padding: "8px 10px" }}>
             <div style={{ color: C.textMute, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Sessions</div>
             <div style={{ color: C.textDim, fontSize: 11, lineHeight: 1.8 }}>
-              {isLight ? <>{`S1 (35 min) Listening + shadowing`}<br />{`S2 (35 min) Quick-fire speaking`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>
-                : isReview ? <>{`S1 (1 hr)   Mock muntlig exam`}<br />{`S2 (30 min) Fluency self-assessment`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>
-                  : <>{`S1 (1h 15m) Vocab + grammar (oral drills)`}<br />{`S2 (1h 15m) Role-play + monologues`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>}
+              <SessionSummary mode={mode} isLight={isLight} isReview={isReview} />
             </div>
           </div>
 
@@ -382,6 +540,7 @@ export default function App() {
   const totalDays = 84;
   const doneD = Object.values(dd).reduce((a, w) => a + Object.values(w).filter(Boolean).length, 0);
   const phase = phaseFor(week);
+  const mode = modeFor(week);
 
   if (loading) return <div style={{ background: C.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: C.textMute, fontFamily: "'Sora',sans-serif" }}>Loading…</div>;
 
@@ -397,14 +556,14 @@ export default function App() {
       {/* title */}
       <div style={{ marginBottom: 18, display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 23, fontWeight: 800, color: C.text }}>🇳🇴 Norwegian B1 Muntlig Tracker <span style={{ fontSize: 13, fontWeight: 500, color: C.textDim }}>v2</span></h1>
-          <p style={{ margin: "3px 0 0", color: C.textDim, fontSize: 11 }}>Speaking-first B1 prep · oral drills every day · muntlig exam simulation · progress saved</p>
+          <h1 style={{ margin: 0, fontSize: 23, fontWeight: 800, color: C.text }}>🇳🇴 Norwegian B1 Tracker <span style={{ fontSize: 13, fontWeight: 500, color: C.textDim }}>v3</span></h1>
+          <p style={{ margin: "3px 0 0", color: C.textDim, fontSize: 11 }}>Writing → Speaking progression · skriftlig → blandet → muntlig-fokus → muntlig · progress saved</p>
         </div>
         <button onClick={toggleDark} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 16, lineHeight: 1, flexShrink: 0, marginTop: 2, transition: "all 0.2s" }} title={dark ? "Switch to light mode" : "Switch to dark mode"}>{dark ? "☀️" : "🌙"}</button>
       </div>
 
       {/* stats row */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
         {[
           { label: "Days Done", val: `${doneD} / ${totalDays}`, pct: doneD / totalDays, col: C.green },
           { label: "Topics Done", val: `${doneT} / ${totalTopics}`, pct: doneT / totalTopics, col: C.blue },
@@ -418,13 +577,50 @@ export default function App() {
         ))}
       </div>
 
+      {/* mode progression indicator */}
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 13px", marginBottom: 12 }}>
+        <div style={{ color: C.textDim, fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>Learning Mode</div>
+        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+          {PHASES.map(p => {
+            const m = MODES[p.mode];
+            const active = p.weeks.includes(week);
+            return (
+              <div key={p.id} style={{ flex: 1, textAlign: "center" }}>
+                <div style={{
+                  background: active ? p.color.mid : C.surfaceHi,
+                  color: active ? "#fff" : C.textDim,
+                  borderRadius: 6, padding: "4px 6px", fontSize: 10, fontWeight: active ? 700 : 400,
+                  transition: "all 0.2s",
+                }}>
+                  {m.icon} {m.label}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", marginTop: 6 }}>
+          <span style={{ color: C.textDim, fontSize: 9 }}>✍️ Writing</span>
+          <div style={{ flex: 1, height: 3, background: C.surfaceHi, borderRadius: 3, margin: "0 8px", position: "relative", overflow: "hidden" }}>
+            <div style={{
+              width: `${((week - 1) / 11) * 100}%`,
+              height: "100%",
+              background: `linear-gradient(90deg, ${SHARED.green.mid}, ${SHARED.blue.mid}, ${SHARED.purple.mid}, ${SHARED.gold.mid})`,
+              borderRadius: 3, transition: "width 0.4s",
+            }} />
+          </div>
+          <span style={{ color: C.textDim, fontSize: 9 }}>🎤 Speaking</span>
+        </div>
+      </div>
+
       {/* phase nav */}
       <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
         {PHASES.map(p => {
           const active = p.weeks.includes(week);
+          const m = MODES[p.mode];
           return <button key={p.id} onClick={() => setWeek(p.weeks[0])} style={{ flex: "1 1 110px", padding: "7px 9px", borderRadius: 8, border: active ? `2px solid ${p.color.mid}` : `1px solid ${C.border}`, background: active ? p.color.light + "18" : C.surface, color: active ? p.color.mid : C.textMute, fontFamily: "inherit", fontSize: 11, fontWeight: active ? 700 : 500, cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
-            <div style={{ fontSize: 8, opacity: 0.55, textTransform: "uppercase", letterSpacing: 0.8 }}>Phase {p.id}</div>
+            <div style={{ fontSize: 8, opacity: 0.55, textTransform: "uppercase", letterSpacing: 0.8 }}>Phase {p.id} · {m.icon}</div>
             <div style={{ fontWeight: 700 }}>{p.label}</div>
+            <div style={{ fontSize: 9, opacity: 0.7 }}>{m.label}</div>
           </button>;
         })}
       </div>
@@ -434,6 +630,7 @@ export default function App() {
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
           <span style={{ color: phase.color.mid, fontSize: 19, fontWeight: 800 }}>Week {week}</span>
           <span style={{ color: C.textMute, fontSize: 13, fontWeight: 600 }}>— {CUR[week].theme}</span>
+          <span style={{ color: C.textDim, fontSize: 10, background: C.surfaceHi, borderRadius: 4, padding: "2px 6px" }}>{mode.icon} {mode.label}</span>
         </div>
         <p style={{ margin: "0 0 8px", color: C.textDim, fontSize: 11 }}>{CUR[week].focus}</p>
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
@@ -456,11 +653,14 @@ export default function App() {
         <div style={{ color: C.textDim, fontSize: 11, lineHeight: 1.85 }}>
           1. Expand a day → see its <strong style={{ color: C.text }}>unique vocab + grammar topics</strong>.<br />
           2. Mark topics <strong style={{ color: C.green.mid }}>✓ done</strong> after learning, or <strong style={{ color: C.red.mid }}>✕ skip</strong> if already known.<br />
-          3. Tap <strong style={{ color: C.text }}>Generate & Copy</strong> — the prompt carries your <em>full topic history</em>, so Claude generates speaking-focused exercises with no repetition.<br />
-          4. <strong style={{ color: C.text }}>Session 2</strong>: Role-plays, opinion monologues, and paired discussion practice — all spoken aloud.<br />
-          5. <strong style={{ color: C.text }}>Session 3 (Oral Refresher)</strong> auto-pulls from all previously done topics for spoken spaced repetition.<br />
-          6. <strong style={{ color: C.text }}>Sundays</strong>: Full mock muntlig exam simulation (self-intro + opinion + paired discussion).<br />
-          7. Tick the day ✓ when all 3 sessions are complete.
+          3. Tap <strong style={{ color: C.text }}>Generate & Copy</strong> — the prompt adapts to your current learning mode and carries your full topic history.<br />
+          4. <strong style={{ color: C.text }}>Weeks 1–3 (Skriftlig)</strong>: All written — build vocab and grammar through writing.<br />
+          5. <strong style={{ color: C.text }}>Weeks 4–6 (Blandet)</strong>: Write first, then speak — start thinking in Norwegian aloud.<br />
+          6. <strong style={{ color: C.text }}>Weeks 7–9 (Muntlig-fokus)</strong>: Mostly oral, with brief written notes as support.<br />
+          7. <strong style={{ color: C.text }}>Weeks 10–12 (Muntlig)</strong>: Full speaking — mock muntlig exams, interview prep, no writing crutch.<br />
+          8. <strong style={{ color: C.text }}>Session 3 (Refresher)</strong> adapts: written → mixed → oral spaced repetition.<br />
+          9. <strong style={{ color: C.text }}>Sundays</strong>: Review day — written review (early) → mock muntlig exam (later).<br />
+          10. Tick the day ✓ when all 3 sessions are complete.
         </div>
       </div>
     </div>
