@@ -218,7 +218,7 @@ function buildSessionStructure(mode, L) {
   const m = mode.id;
   if (m === "skriftlig") {
     L.push(`S1 (1h 15min): Learn today's vocab + grammar with WRITING-FIRST exercises. Generate 8–10 written drills: write sentences using new vocab, fill-in-the-blank exercises, construct short paragraphs using new grammar, translate English→Norwegian sentences. Reference NTNU Learn Norwegian or NRK Norskkurs if relevant.`);
-    L.push(`S2 (1h 15min): WRITING PRACTICE — Generate: (a) one short writing prompt (write 80–120 words on a topic using today's vocab), (b) 5 sentence-construction exercises (given keywords, write a complete sentence), (c) one dialogue-writing exercise (write both sides of a realistic conversation using today's grammar).`);
+    L.push(`S2 (1h 15min): WRITTEN THINKING PRACTICE — This session builds the thinking patterns you'll need for speaking later. Generate: (a) one WRITTEN OPINION PIECE — give a discussion question related to today's topic, the learner writes their position (80–120 words) with arguments for AND against, using connectors like "fordi", "på den ene siden", "dessuten", "likevel"; (b) one WRITTEN PAIRED DISCUSSION — write out a realistic two-person conversation (8–10 exchanges) where two people debate or discuss a scenario related to today's topic, using today's grammar and vocab; (c) 3 sentence-construction exercises (given keywords, write a complete sentence).`);
   } else if (m === "blandet") {
     L.push(`S1 (1h 15min): Learn today's vocab + grammar with MIXED exercises. Generate 8–10 drills: 4–5 written exercises (write sentences, fill blanks, short paragraphs) + 4–5 spoken exercises (say sentences aloud, describe scenarios verbally). Mark each drill with [SKRIV] or [SI HØYT].`);
     L.push(`S2 (1h 15min): MIXED PRACTICE — Generate: (a) one written exercise (write a 60–80 word paragraph using today's vocab), (b) one read-aloud exercise (read your paragraph aloud, then improvise a 1-minute spoken extension), (c) 3 simple spoken response questions (answer aloud in 30 seconds each).`);
@@ -235,7 +235,7 @@ function buildLightSessions(mode, L) {
   const m = mode.id;
   if (m === "skriftlig") {
     L.push(`S1 (35 min): READING + WRITTEN NOTES — Read a "Klar Tale" or NRK article. Write down 5 new words with their meaning. Write 3 sentences using those words.`);
-    L.push(`S2 (35 min): QUICK WRITING DRILLS — Write short answers (2–3 sentences each) to 5 questions related to today's topic. Focus on correct grammar and word order.`);
+    L.push(`S2 (35 min): QUICK OPINION WRITING — Pick 1 topic from today and write a short opinion (40–60 words): state your position, give 1 reason, and 1 counter-argument. Then write a mini 4-exchange dialogue between two people discussing the same topic.`);
   } else if (m === "blandet") {
     L.push(`S1 (35 min): READING + READ-ALOUD — Read a "Klar Tale" or NRK article. Write down 5 new words, then read the article aloud. Practice pronunciation of the new words.`);
     L.push(`S2 (35 min): MIXED RESPONSE — Answer 5 questions related to today's topic: write the first 3, speak the last 2 aloud (30–60 seconds each, no writing).`);
@@ -251,8 +251,8 @@ function buildLightSessions(mode, L) {
 function buildReviewSessions(mode, weekNum, L) {
   const m = mode.id;
   if (m === "skriftlig") {
-    L.push(`S1 (1 hr): WRITTEN REVIEW — Write a 150–200 word summary in Norwegian covering this week's themes. Use as many keywords from this week as possible. Then write 5 sentences using 5 different grammar points from this week.`);
-    L.push(`S2 (30 min): SELF-ASSESSMENT — Review your written work. Check: spelling, noun genders, verb conjugations, word order (V2 rule). Rate yourself 1–5 on: vocabulary range, grammatical accuracy, sentence complexity, ability to express ideas in writing.`);
+    L.push(`S1 (1 hr): WRITTEN MOCK DISCUSSION — Simulate a muntlig exam on paper: (a) Write a 100–150 word self-introduction covering your background, interests, and goals. (b) Pick a discussion topic from this week — write your opinion (80–100 words) with at least 3 arguments using "for det første", "dessuten", "på den andre siden". (c) Write a full paired discussion (10–12 exchanges) between two people debating this week's theme — use this week's vocab and grammar throughout.`);
+    L.push(`S2 (30 min): SELF-ASSESSMENT — Review your written work. Check: spelling, noun genders, verb conjugations, word order (V2 rule). Rate yourself 1–5 on: vocabulary range, grammatical accuracy, ability to build arguments, quality of written dialogues.`);
   } else if (m === "blandet") {
     L.push(`S1 (45 min): WRITTEN + SPOKEN REVIEW — Write a short paragraph (80–100 words) on one of this week's themes, then READ IT ALOUD. Next, answer 3 opinion questions ORALLY (60 seconds each, no notes).`);
     L.push(`S2 (30 min): SELF-ASSESSMENT — Rate yourself 1–5 on: written accuracy, spoken fluency, pronunciation, vocabulary range, ability to express opinions both in writing and speech. Note which mode (written vs spoken) felt easier.`);
@@ -318,12 +318,12 @@ function buildInstructions(mode, L) {
   L.push(`--- INSTRUCTIONS ---`);
 
   if (m === "skriftlig") {
-    L.push(`Generate the full detailed plan. This is a SKRIFTLIG (writing) focused program. All exercises should be designed to be completed in writing.`);
+    L.push(`Generate the full detailed plan. This is a SKRIFTLIG (writing) focused program. All exercises are written, but designed to build the THINKING PATTERNS needed for speaking later.`);
     L.push(`For vocab: Norwegian word + English meaning + example WRITTEN sentence + note on spelling/gender.`);
     L.push(`For grammar: brief rule explanation, then 5–8 WRITTEN sentence drills (the learner writes these — include the prompt and expected written answer).`);
-    L.push(`For S2 writing practice: Generate realistic writing exercises with model answers. For sentence construction, provide keywords and expected output. For dialogues, write out both roles as a written dialogue.`);
+    L.push(`For S2 written thinking practice: The goal is to train the learner to THINK in Norwegian. (a) For the written opinion piece: provide a clear discussion question, list 3–4 useful phrases/connectors to use, and show a model answer structure. (b) For the written paired discussion: set up a realistic scenario, provide both character descriptions, and give suggested talking points for each side — the learner writes both roles as a natural dialogue. (c) For sentence construction: provide keywords and expected output.`);
     L.push(`For the written refresher: actually write out the specific questions and prompts — don't describe them generically. Mark each one with [SKRIV].`);
-    L.push(`Important: Frame all exercises as things to WRITE. Use prompts like "Skriv:", "Oversett:", "Fullfør setningen:", "Skriv et avsnitt:".`);
+    L.push(`Important: Frame all exercises as things to WRITE, but emphasise that writing opinions and dialogues is preparation for SPEAKING them later. Use prompts like "Skriv:", "Oversett:", "Skriv din mening:", "Skriv en samtale:", "Argumentér skriftlig:".`);
   } else if (m === "blandet") {
     L.push(`Generate the full detailed plan. This is a BLANDET (mixed writing + speaking) program. Exercises alternate between written and spoken.`);
     L.push(`For vocab: Norwegian word + English meaning + example sentence + pronunciation hint. Learner writes the word 3 times, then says it aloud in a sentence.`);
@@ -419,19 +419,19 @@ function TopicChip({ topic, state, onToggle, C }) {
 function SessionSummary({ mode, isLight, isReview }) {
   const m = mode.id;
   if (isLight) {
-    if (m === "skriftlig") return <>{`S1 (35 min) Reading + written notes`}<br />{`S2 (35 min) Quick writing drills`}<br />{`S3 (30 min) Written Refresher ✍️`}</>;
+    if (m === "skriftlig") return <>{`S1 (35 min) Reading + written notes`}<br />{`S2 (35 min) Quick opinion writing`}<br />{`S3 (30 min) Written Refresher ✍️`}</>;
     if (m === "blandet") return <>{`S1 (35 min) Reading + read-aloud`}<br />{`S2 (35 min) Mixed response (write + speak)`}<br />{`S3 (30 min) Mixed Refresher ✍️🗣️`}</>;
     if (m === "muntlig_fokus") return <>{`S1 (35 min) Listening + shadowing`}<br />{`S2 (35 min) Quick-fire speaking`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
     return <>{`S1 (35 min) Listening + shadowing`}<br />{`S2 (35 min) Quick-fire speaking`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
   }
   if (isReview) {
-    if (m === "skriftlig") return <>{`S1 (1 hr)   Written review + summary`}<br />{`S2 (30 min) Self-assessment (written)`}<br />{`S3 (30 min) Written Refresher ✍️`}</>;
+    if (m === "skriftlig") return <>{`S1 (1 hr)   Written mock discussion`}<br />{`S2 (30 min) Self-assessment (written)`}<br />{`S3 (30 min) Written Refresher ✍️`}</>;
     if (m === "blandet") return <>{`S1 (45 min) Written + spoken review`}<br />{`S2 (30 min) Self-assessment (mixed)`}<br />{`S3 (30 min) Mixed Refresher ✍️🗣️`}</>;
     if (m === "muntlig_fokus") return <>{`S1 (1 hr)   Mock muntlig (notes OK)`}<br />{`S2 (30 min) Fluency self-assessment`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
     return <>{`S1 (1 hr)   Mock muntlig exam`}<br />{`S2 (30 min) Fluency self-assessment`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
   }
   // heavy
-  if (m === "skriftlig") return <>{`S1 (1h 15m) Vocab + grammar (written drills)`}<br />{`S2 (1h 15m) Writing practice + dialogues`}<br />{`S3 (30 min) Written Refresher ✍️`}</>;
+  if (m === "skriftlig") return <>{`S1 (1h 15m) Vocab + grammar (written drills)`}<br />{`S2 (1h 15m) Opinion writing + paired discussion`}<br />{`S3 (30 min) Written Refresher ✍️`}</>;
   if (m === "blandet") return <>{`S1 (1h 15m) Vocab + grammar (write + speak)`}<br />{`S2 (1h 15m) Mixed practice (write then speak)`}<br />{`S3 (30 min) Mixed Refresher ✍️🗣️`}</>;
   if (m === "muntlig_fokus") return <>{`S1 (1h 15m) Vocab + grammar (speaking-focused)`}<br />{`S2 (1h 15m) Role-play + monologues`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
   return <>{`S1 (1h 15m) Vocab + grammar (oral drills)`}<br />{`S2 (1h 15m) Role-play + monologues`}<br />{`S3 (30 min) Oral Refresher 🗣️`}</>;
@@ -556,7 +556,7 @@ export default function App() {
       {/* title */}
       <div style={{ marginBottom: 18, display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 23, fontWeight: 800, color: C.text }}>🇳🇴 Norwegian B1 Tracker <span style={{ fontSize: 13, fontWeight: 500, color: C.textDim }}>v3</span></h1>
+          <h1 style={{ margin: 0, fontSize: 23, fontWeight: 800, color: C.text }}>🇳🇴 Norwegian B1 Tracker <span style={{ fontSize: 13, fontWeight: 500, color: C.textDim }}>v3.1</span></h1>
           <p style={{ margin: "3px 0 0", color: C.textDim, fontSize: 11 }}>Writing → Speaking progression · skriftlig → blandet → muntlig-fokus → muntlig · progress saved</p>
         </div>
         <button onClick={toggleDark} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 16, lineHeight: 1, flexShrink: 0, marginTop: 2, transition: "all 0.2s" }} title={dark ? "Switch to light mode" : "Switch to dark mode"}>{dark ? "☀️" : "🌙"}</button>
