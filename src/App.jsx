@@ -31,9 +31,9 @@ const MODES = {
 
 const PHASES = [
   { id: 1, label: "Foundation", subtitle: "Skriftlig (Writing)", weeks: [1, 2, 3], color: SHARED.green, mode: "skriftlig" },
-  { id: 2, label: "Tech + Norsk", subtitle: "Blandet (Mixed)", weeks: [4, 5, 6], color: SHARED.blue, mode: "blandet" },
-  { id: 3, label: "DevOps + Diskusjon", subtitle: "Muntlig-fokus", weeks: [7, 8, 9], color: SHARED.purple, mode: "muntlig_fokus" },
-  { id: 4, label: "Avansert + Intervju", subtitle: "Muntlig (Full oral)", weeks: [10, 11, 12], color: SHARED.gold, mode: "muntlig" },
+  { id: 2, label: "Helse + Bolig + Kultur", subtitle: "Blandet (Mixed)", weeks: [4, 5, 6], color: SHARED.blue, mode: "blandet" },
+  { id: 3, label: "Samfunn + Diskusjon", subtitle: "Muntlig-fokus", weeks: [7, 8, 9], color: SHARED.purple, mode: "muntlig_fokus" },
+  { id: 4, label: "Tech + Intervju + Eksamen", subtitle: "Muntlig (Full oral)", weeks: [10, 11, 12], color: SHARED.gold, mode: "muntlig" },
 ];
 
 // ─── CURRICULUM (all 84 unique topics) ───────────────────────────────────────
@@ -72,24 +72,24 @@ const CUR = {
     }
   },
   4: {
-    theme: "Teknologiens verden", focus: "General IT — computers, internet, software, data", days: {
-      0: { v: { id: "v4d0", t: "Datamaskin-grunnlag", en: "Computer basics", kw: ["datamaskin", "skjerm", "tastatur", "mus", "operativsystem", "fil"] }, g: { id: "g4d0", t: "Passiv – utvidet", en: "Passive expanded", kw: ["er blitt gjort", "kan lagres", "ble opprettet"] } },
-      1: { v: { id: "v4d1", t: "Internett og nettverk", en: "Internet & networking", kw: ["internett", "nettverk", "server", "nettleser", "sky", "tilkobling"] }, g: { id: "g4d1", t: "Presens partisipp som adjektiv", en: "Participle as adjective", kw: ["den lagrede filen", "det tilkoblede apparatet", "kjørende program"] } },
-      2: { v: { id: "v4d2", t: "Programvare-grunnlag", en: "Software basics", kw: ["programvare", "program", "app", "oppdatering", "versjon", "installere", "feil"] }, g: { id: "g4d2", t: "Modale verb – fortid", en: "Modal verbs past", kw: ["kunne", "måtte", "skulle", "fikk", "ville"] } },
-      3: { v: { id: "v4d3", t: "Maskinvare", en: "Hardware components", kw: ["prosessor", "RAM", "GPU", "harddisk", "minne"] }, g: { id: "g4d3", t: "Preposisjoner – sted", en: "Prepositions of place", kw: ["på", "i", "ved", "over", "under", "foran", "bak", "ved siden av"] } },
-      4: { v: { id: "v4d4", t: "Data og lagring", en: "Data & storage", kw: ["data", "datasett", "lagre", "database", "sikkerhetskopi", "kryptere"] }, g: { id: "g4d4", t: "Eiendomsord og genitiv", en: "Possessives & genitive", kw: ["min", "din", "hans", "hennes", "-s genitiv", "til"] } },
-      5: { v: { id: "v4d5", t: "IT-sikkerhet", en: "IT security", kw: ["sikkerhet", "passord", "kryptering", "brannmur", "virus", "beskyttelse"] }, g: { id: "g4d5", t: "Tidssetninger – da/når", en: "Temporal clauses", kw: ["da", "når", "mens", "før", "etter at"] } },
+    theme: "Helse og velvære", focus: "Health, doctor visits, body, pharmacy, lifestyle, exercise", days: {
+      0: { v: { id: "v4d0", t: "Hos legen", en: "At the doctor", kw: ["lege", "pasient", "time", "undersøkelse", "resept", "sykmelding"] }, g: { id: "g4d0", t: "Passiv – utvidet", en: "Passive expanded", kw: ["ble undersøkt", "er blitt behandlet", "kan foreskrives"] } },
+      1: { v: { id: "v4d1", t: "Kropp og symptomer", en: "Body & symptoms", kw: ["hode", "mage", "rygg", "feber", "vondt", "smerter", "kvalm"] }, g: { id: "g4d1", t: "Presens partisipp som adjektiv", en: "Participle as adjective", kw: ["den smertende armen", "det hovne kneet", "en blødende finger"] } },
+      2: { v: { id: "v4d2", t: "Apotek og medisin", en: "Pharmacy & medicine", kw: ["apotek", "medisin", "tablett", "resept", "bivirkning", "dose", "allergi"] }, g: { id: "g4d2", t: "Modale verb – fortid", en: "Modal verbs past", kw: ["måtte ta medisin", "kunne ikke sove", "skulle til legen", "ville bli frisk"] } },
+      3: { v: { id: "v4d3", t: "Sunn livsstil", en: "Healthy lifestyle", kw: ["sunt", "kosthold", "trene", "søvn", "stress", "vaner", "helse-app"] }, g: { id: "g4d3", t: "Preposisjoner – sted", en: "Prepositions of place", kw: ["på sykehuset", "hos legen", "i apoteket", "ved siden av", "foran", "bak"] } },
+      4: { v: { id: "v4d4", t: "Psykisk helse", en: "Mental health", kw: ["psykisk", "angst", "depresjon", "terapi", "støtte", "mindfulness", "trivsel"] }, g: { id: "g4d4", t: "Eiendomsord og genitiv", en: "Possessives & genitive", kw: ["min helse", "legens råd", "hans symptomer", "hennes behandling", "-s genitiv"] } },
+      5: { v: { id: "v4d5", t: "Trening og sport", en: "Exercise & sports", kw: ["trene", "løpe", "svømme", "fotball", "ski", "treningssenter", "tur"] }, g: { id: "g4d5", t: "Tidssetninger – da/når", en: "Temporal clauses", kw: ["da jeg ble syk", "når man trener", "mens jeg ventet", "etter at"] } },
       6: null
     }
   },
   5: {
-    theme: "Muntlig kommunikasjon på jobb", focus: "Spoken workplace communication, meetings, presentations, phone calls", days: {
-      0: { v: { id: "v5d0", t: "E-post-grunnlag", en: "Email basics", kw: ["emne", "vedlegg", "sende", "motta", "innboks", "svare"] }, g: { id: "g5d0", t: "Formelt vs. uformelt", en: "Formal vs informal", kw: ["De", "du", "Kjære", "Hei", "Med vennlig hilsen"] } },
-      1: { v: { id: "v5d1", t: "Telefonsamtaler", en: "Phone conversations", kw: ["ringe", "linje", "talepost", "ringe tilbake", "forbindelse"] }, g: { id: "g5d1", t: "Høflige forespørsler", en: "Polite requests", kw: ["Kunne du", "Ville du", "Hadde du", "vær så snill", "det hadde vært fint"] } },
-      2: { v: { id: "v5d2", t: "Møter", en: "Meetings", kw: ["møte", "dagsorden", "referat", "avstemning", "lede"] }, g: { id: "g5d2", t: "Konnektorer", en: "Connectors", kw: ["likevel", "dessuten", "allikevel", "derfor", "på den ene siden", "på den andre siden"] } },
-      3: { v: { id: "v5d3", t: "Presentere resultater", en: "Presenting results", kw: ["presentere", "resultat", "oppsummere", "forklare", "beskrive muntlig"] }, g: { id: "g5d3", t: "Passiv i tale", en: "Passive in spoken language", kw: ["blir brukt", "ble diskutert", "er blitt enige om"] } },
-      4: { v: { id: "v5d4", t: "Presentasjoner", en: "Presentations", kw: ["presentasjon", "holde foredrag", "lysbilde", "publikum", "foredrag"] }, g: { id: "g5d4", t: "Strukturord – foredrag", en: "Structuring talks", kw: ["for det første", "for det andre", "for eksempel", "til slutt"] } },
-      5: { v: { id: "v5d5", t: "Nettverksbygging", en: "Professional networking", kw: ["kontakt", "nettverk", "visittkort", "presentere seg"] }, g: { id: "g5d5", t: "Sammensatte setninger", en: "Compound sentences", kw: ["den pågående analysen", "det opprettede dokumentet"] } },
+    theme: "Bolig og nærmiljø", focus: "Housing, renting, home description, neighborhood, moving", days: {
+      0: { v: { id: "v5d0", t: "Boligtyper", en: "Types of housing", kw: ["leilighet", "hus", "hybel", "rekkehus", "blokk", "etasje", "rom"] }, g: { id: "g5d0", t: "Formelt vs. uformelt", en: "Formal vs informal", kw: ["De", "du", "Kjære utleier", "Hei", "Med vennlig hilsen"] } },
+      1: { v: { id: "v5d1", t: "Leie og kontrakt", en: "Renting & contracts", kw: ["leie", "utleier", "leietaker", "depositum", "kontrakt", "oppsigelse", "husleie"] }, g: { id: "g5d1", t: "Høflige forespørsler", en: "Polite requests", kw: ["Kunne jeg få se leiligheten", "Ville det vært mulig", "vær så snill", "det hadde vært fint"] } },
+      2: { v: { id: "v5d2", t: "Beskrive hjemmet", en: "Describing your home", kw: ["stue", "kjøkken", "soverom", "bad", "møbler", "innredning", "koselig"] }, g: { id: "g5d2", t: "Konnektorer", en: "Connectors", kw: ["likevel", "dessuten", "allikevel", "derfor", "på den ene siden", "på den andre siden"] } },
+      3: { v: { id: "v5d3", t: "Nabolag og tjenester", en: "Neighborhood & services", kw: ["nabolag", "matbutikk", "skole", "park", "busstopp", "bibliotek", "Finn.no"] }, g: { id: "g5d3", t: "Passiv i tale", en: "Passive in spoken language", kw: ["ble bygget", "er blitt renovert", "blir vedlikeholdt"] } },
+      4: { v: { id: "v5d4", t: "Flytte", en: "Moving", kw: ["flytte", "pakke", "adresseendring", "Posten", "folkeregisteret", "nøkkel", "innflytting"] }, g: { id: "g5d4", t: "Strukturord – beskrivelse", en: "Structuring descriptions", kw: ["for det første", "for det andre", "for eksempel", "til slutt"] } },
+      5: { v: { id: "v5d5", t: "Hjem og vedlikehold", en: "Home & maintenance", kw: ["reparere", "vaske", "rengjøre", "dugnad", "vaktmester", "smarthjem", "oppussing"] }, g: { id: "g5d5", t: "Sammensatte setninger", en: "Compound sentences", kw: ["den nyoppussede leiligheten", "det velholdte nabolaget", "en romslig stue"] } },
       6: null
     }
   },
@@ -105,46 +105,46 @@ const CUR = {
     }
   },
   7: {
-    theme: "DevOps-grunnlag", focus: "CI/CD, cloud, infrastructure, containers", days: {
-      0: { v: { id: "v7d0", t: "DevOps-grunnlag", en: "DevOps fundamentals", kw: ["DevOps", "automatisering", "kontinuerlig levering", "infrastruktur", "utrulling"] }, g: { id: "g7d0", t: "Tekniske tekster", en: "Structuring tech text", kw: ["for det første", "i tillegg", "i denne sammenhengen", "tjener til"] } },
-      1: { v: { id: "v7d1", t: "Skyplattformer", en: "Cloud platforms", kw: ["sky", "AWS", "Azure", "tjeneste", "virtuell maskin", "skalerbarhet"] }, g: { id: "g7d1", t: "Passiv – fagspråk", en: "Passive in technical writing", kw: ["ble konfigurert", "blir brukt", "er blitt beregnet"] } },
-      2: { v: { id: "v7d2", t: "Containere og Docker", en: "Containers & Docker", kw: ["container", "Docker", "image", "Kubernetes", "orkestrering", "pod"] }, g: { id: "g7d2", t: "Tekniske verb", en: "Tech verb phrases", kw: ["sette i drift", "anvende", "gjennomføre", "implementere"] } },
-      3: { v: { id: "v7d3", t: "CI/CD-pipeliner", en: "CI/CD pipelines", kw: ["pipeline", "bygg", "test", "deploy", "integrasjon", "automatisert"] }, g: { id: "g7d3", t: "Formålssetninger – for å/slik at", en: "Purpose clauses", kw: ["for å", "slik at", "med formål om", "hensikt"] } },
-      4: { v: { id: "v7d4", t: "Infrastruktur som kode", en: "Infrastructure as Code", kw: ["IaC", "Terraform", "Ansible", "konfigurasjon", "provisjonering", "versjonskontroll"] }, g: { id: "g7d4", t: "Sammenligningsstrukturer", en: "Comparison structures", kw: ["sammenligne", "høyere enn", "sammenlignet med"] } },
-      5: { v: { id: "v7d5", t: "Nettverkssikkerhet", en: "Network security", kw: ["sikkerhet", "brannmur", "VPN", "tilgangskontroll", "sårbarhet", "oppdatering"] }, g: { id: "g7d5", t: "Konklusjonssetninger", en: "Conclusion patterns", kw: ["Ut fra dette kan vi utlede", "Det følger av", "Konklusjonen er"] } },
+    theme: "Handel, tjenester og reise", focus: "Shopping, banking, public services, restaurants, travel, transport", days: {
+      0: { v: { id: "v7d0", t: "Handle og butikker", en: "Shopping & stores", kw: ["butikk", "handle", "pris", "tilbud", "kasse", "kvittering", "nettbutikk"] }, g: { id: "g7d0", t: "Strukturere tekst", en: "Structuring text", kw: ["for det første", "i tillegg", "i denne sammenhengen", "dessuten"] } },
+      1: { v: { id: "v7d1", t: "Bank og økonomi", en: "Banking & money", kw: ["bank", "konto", "overføring", "lån", "rente", "Vipps", "nettbank"] }, g: { id: "g7d1", t: "Passiv i formelt språk", en: "Passive in formal language", kw: ["ble overført", "er blitt godkjent", "kan betales"] } },
+      2: { v: { id: "v7d2", t: "Offentlige tjenester", en: "Public services", kw: ["NAV", "skatteetaten", "folkeregisteret", "Posten", "kommune", "BankID"] }, g: { id: "g7d2", t: "Handlingsverb", en: "Action verb phrases", kw: ["søke om", "melde fra", "registrere seg", "levere inn", "fylle ut"] } },
+      3: { v: { id: "v7d3", t: "Restaurant og kafé", en: "Restaurants & cafes", kw: ["meny", "bestille", "regning", "tips", "servitør", "vegetar", "allergier"] }, g: { id: "g7d3", t: "Formålssetninger – for å/slik at", en: "Purpose clauses", kw: ["for å bestille", "slik at vi rekker", "med formål om", "hensikt"] } },
+      4: { v: { id: "v7d4", t: "Reise og transport", en: "Travel & transport", kw: ["tog", "buss", "fly", "billett", "reise", "bagasje", "forsinkelse", "Ruter"] }, g: { id: "g7d4", t: "Sammenligningsstrukturer", en: "Comparison structures", kw: ["billigere enn", "raskere enn", "den beste ruten", "sammenlignet med"] } },
+      5: { v: { id: "v7d5", t: "Bestilling og veibeskrivelse", en: "Booking & directions", kw: ["bestille", "reservere", "rett fram", "ta til venstre", "holdeplass", "avgang"] }, g: { id: "g7d5", t: "Konklusjonssetninger", en: "Conclusion patterns", kw: ["Alt i alt", "Oppsummert", "Det følger av", "Konklusjonen er"] } },
       6: null
     }
   },
   8: {
-    theme: "Daglige diskusjoner", focus: "Arguments, current events, persuasion, opinions", days: {
-      0: { v: { id: "v8d0", t: "Aktuelle hendelser", en: "Current events", kw: ["hendelse", "politikk", "økonomi", "klima", "debatt", "innvandring"] }, g: { id: "g8d0", t: "Argumentasjonsstruktur", en: "Argumentation structure", kw: ["påstand", "begrunnelse", "eksempel", "motargument", "konklusjon"] } },
-      1: { v: { id: "v8d1", t: "Overbevisende språk", en: "Persuasive language", kw: ["overbevise", "innlysende", "plausibel", "logisk", "bevis"] }, g: { id: "g8d1", t: "Konjunksjoner – avansert", en: "Advanced conjunctions", kw: ["enten…eller", "verken…eller", "både…og", "jo…desto"] } },
-      2: { v: { id: "v8d2", t: "Kritisk tenkning", en: "Critical thinking", kw: ["stille spørsmål", "analysere", "vurdere", "reflektere", "perspektiv"] }, g: { id: "g8d2", t: "Setningsadverbialer", en: "Sentence adverbials", kw: ["dessverre", "heldigvis", "sannsynligvis", "tydeligvis", "selvfølgelig"] } },
-      3: { v: { id: "v8d3", t: "Hverdagssamtaler", en: "Everyday conversations", kw: ["småprat", "vær", "helg", "planer", "hobby", "ferie"] }, g: { id: "g8d3", t: "Forklarende strukturer", en: "Explanatory sentences", kw: ["det betyr at", "det vil si", "med det mener jeg", "nemlig"] } },
-      4: { v: { id: "v8d4", t: "Konfliktløsning", en: "Conflict resolution", kw: ["konflikt", "løse", "kompromiss", "forståelse", "mekle", "enighet"] }, g: { id: "g8d4", t: "Betingelsessetninger – hvis/dersom", en: "Conditional sentences", kw: ["hvis", "dersom", "i tilfelle", "forutsatt at", "med mindre"] } },
-      5: { v: { id: "v8d5", t: "Sosiale medier", en: "Social media discourse", kw: ["sosiale medier", "debatt", "ytringsfrihet", "personvern", "digital", "innhold"] }, g: { id: "g8d5", t: "Refererende setninger", en: "Referencing & quoting", kw: ["ifølge", "som nevnt", "det hevdes at", "med henvisning til"] } },
+    theme: "Familie, utdanning og fritid", focus: "Family, relationships, education, hobbies, entertainment, social life", days: {
+      0: { v: { id: "v8d0", t: "Familie og relasjoner", en: "Family & relationships", kw: ["familie", "foreldre", "søsken", "barn", "ektefelle", "samboer", "slektning"] }, g: { id: "g8d0", t: "Argumentasjonsstruktur", en: "Argumentation structure", kw: ["påstand", "begrunnelse", "eksempel", "motargument", "konklusjon"] } },
+      1: { v: { id: "v8d1", t: "Utdanning og skole", en: "Education & school", kw: ["skole", "universitet", "fag", "eksamen", "karakter", "studere", "lærling"] }, g: { id: "g8d1", t: "Konjunksjoner – avansert", en: "Advanced conjunctions", kw: ["enten…eller", "verken…eller", "både…og", "jo…desto"] } },
+      2: { v: { id: "v8d2", t: "Hobbyer og sport", en: "Hobbies & sports", kw: ["hobby", "fotball", "ski", "lese", "spille", "trene", "friluftsliv"] }, g: { id: "g8d2", t: "Setningsadverbialer", en: "Sentence adverbials", kw: ["dessverre", "heldigvis", "sannsynligvis", "tydeligvis", "selvfølgelig"] } },
+      3: { v: { id: "v8d3", t: "Underholdning og medier", en: "Entertainment & media", kw: ["film", "serie", "musikk", "konsert", "teater", "strømming", "podcast"] }, g: { id: "g8d3", t: "Forklarende strukturer", en: "Explanatory sentences", kw: ["det betyr at", "det vil si", "med det mener jeg", "nemlig"] } },
+      4: { v: { id: "v8d4", t: "Sosialt liv", en: "Social life", kw: ["venn", "selskap", "invitere", "feire", "småprat", "avtale", "hygge"] }, g: { id: "g8d4", t: "Betingelsessetninger – hvis/dersom", en: "Conditional sentences", kw: ["hvis", "dersom", "i tilfelle", "forutsatt at", "med mindre"] } },
+      5: { v: { id: "v8d5", t: "Høytider og feiring", en: "Holidays & celebrations", kw: ["jul", "påske", "17. mai", "bursdag", "bryllup", "nyttår", "tradisjon"] }, g: { id: "g8d5", t: "Refererende setninger", en: "Referencing & quoting", kw: ["ifølge", "som nevnt", "det hevdes at", "med henvisning til"] } },
       6: null
     }
   },
   9: {
-    theme: "Overvåking og feilsøking", focus: "Monitoring, debugging — explaining technical problems verbally", days: {
-      0: { v: { id: "v9d0", t: "Overvåking og logging", en: "Monitoring & logging", kw: ["overvåking", "logg", "varsling", "dashbord", "metrikk", "oppetid"] }, g: { id: "g9d0", t: "Prosessbeskrivelse", en: "Step-by-step description", kw: ["først", "deretter", "så", "til slutt", "trinn for trinn"] } },
-      1: { v: { id: "v9d1", t: "Feilsøking", en: "Debugging & troubleshooting", kw: ["feilsøke", "feil", "bug", "rotårsak", "fikse", "løse"] }, g: { id: "g9d1", t: "Tekniske relative setninger", en: "Tech relative clauses", kw: ["systemet som…", "feilen som…", "tjenesten som…", "der"] } },
-      2: { v: { id: "v9d2", t: "Hendelseshåndtering", en: "Incident management", kw: ["hendelse", "alvorlighetsgrad", "eskalering", "postmortem", "beredskap"] }, g: { id: "g9d2", t: "Metodiske setninger", en: "Workflow sentences", kw: ["I hvert tilfelle", "Vi jobber med", "Målet er å"] } },
-      3: { v: { id: "v9d3", t: "Ytelse og optimalisering", en: "Performance & optimization", kw: ["ytelse", "flaskehals", "optimalisere", "latens", "gjennomstrømning"] }, g: { id: "g9d3", t: "Kausale setninger – teknisk", en: "Technical causal clauses", kw: ["ved at", "som fører til", "resulterer i", "på grunn av"] } },
-      4: { v: { id: "v9d4", t: "Automatisering", en: "Automation & scripting", kw: ["automatisere", "skript", "planlagt oppgave", "cron", "arbeidsflyt"] }, g: { id: "g9d4", t: "Imperativ – profesjonell", en: "Professional imperatives", kw: ["Kjør kommandoen", "Sjekk loggen", "Sørg for at"] } },
-      5: { v: { id: "v9d5", t: "Forklare teknisk muntlig", en: "Explaining tech verbally", kw: ["forklare", "beskrive", "oppsummere muntlig", "presentere løsning"] }, g: { id: "g9d5", t: "Strukturert muntlig forklaring", en: "Structured verbal explanation", kw: ["Først vil jeg forklare", "Bakgrunnen er", "Løsningen var", "Konklusjonen min er"] } },
+    theme: "Diskusjoner og aktuelle temaer", focus: "Current events, persuasion, critical thinking, debates, social media", days: {
+      0: { v: { id: "v9d0", t: "Aktuelle hendelser", en: "Current events", kw: ["hendelse", "politikk", "økonomi", "klima", "debatt", "innvandring"] }, g: { id: "g9d0", t: "Prosessbeskrivelse", en: "Step-by-step description", kw: ["først", "deretter", "så", "til slutt", "trinn for trinn"] } },
+      1: { v: { id: "v9d1", t: "Overbevisende språk", en: "Persuasive language", kw: ["overbevise", "innlysende", "plausibel", "logisk", "bevis", "argument"] }, g: { id: "g9d1", t: "Avanserte relativsetninger", en: "Advanced relative clauses", kw: ["saken som…", "personen som…", "problemet som…", "der"] } },
+      2: { v: { id: "v9d2", t: "Kritisk tenkning", en: "Critical thinking", kw: ["stille spørsmål", "analysere", "vurdere", "reflektere", "perspektiv"] }, g: { id: "g9d2", t: "Metodiske setninger", en: "Methodology sentences", kw: ["I hvert tilfelle", "Vi kan se at", "Målet er å", "Det viser seg at"] } },
+      3: { v: { id: "v9d3", t: "Hverdagssamtaler", en: "Everyday conversations", kw: ["småprat", "vær", "helg", "planer", "ferie", "nyheter"] }, g: { id: "g9d3", t: "Kausale setninger", en: "Advanced causal clauses", kw: ["ved at", "som fører til", "resulterer i", "på grunn av"] } },
+      4: { v: { id: "v9d4", t: "Konfliktløsning", en: "Conflict resolution", kw: ["konflikt", "løse", "kompromiss", "forståelse", "mekle", "enighet"] }, g: { id: "g9d4", t: "Imperativ – profesjonell", en: "Professional imperatives", kw: ["Tenk over", "Vurder å", "Sørg for at", "Husk å"] } },
+      5: { v: { id: "v9d5", t: "Sosiale medier og debatt", en: "Social media & debate", kw: ["sosiale medier", "debatt", "ytringsfrihet", "personvern", "digital", "innhold"] }, g: { id: "g9d5", t: "Strukturert muntlig forklaring", en: "Structured verbal explanation", kw: ["Først vil jeg forklare", "Bakgrunnen er", "Poenget mitt er", "Konklusjonen min er"] } },
       6: null
     }
   },
   10: {
-    theme: "Programvareutvikling", focus: "Architecture, APIs, Agile, software engineering", days: {
-      0: { v: { id: "v10d0", t: "Programvarearkitektur", en: "Software architecture", kw: ["arkitektur", "mikrotjenester", "backend", "frontend", "design"] }, g: { id: "g10d0", t: "Passiv – forklaringer", en: "Passive in explanations", kw: ["blir brukt", "blir implementert", "blir bygget opp"] } },
-      1: { v: { id: "v10d1", t: "APIer og grensesnitt", en: "APIs", kw: ["API", "grensesnitt", "endepunkt", "REST", "forespørsel", "svar"] }, g: { id: "g10d1", t: "Sammensatte substantiv", en: "Compound nouns", kw: ["programvareutvikling", "databasetilkobling", "brukergrensesnitt"] } },
-      2: { v: { id: "v10d2", t: "Agile og Scrum", en: "Agile & Scrum", kw: ["Agile", "Scrum", "sprint", "backlog", "standup", "brukerhistorie"] }, g: { id: "g10d2", t: "Tidsuttrykk – avansert", en: "Advanced time expressions", kw: ["i løpet av", "innen", "fra og med", "fortløpende"] } },
-      3: { v: { id: "v10d3", t: "Kode og kvalitet", en: "Code & QA", kw: ["kode", "kvalitetssikring", "testing", "enhetstest", "refaktorering"] }, g: { id: "g10d3", t: "Konjunktiv – ville/skulle", en: "Conditional in tech context", kw: ["dette ville", "det skulle", "man kunne", "ideelt sett"] } },
-      4: { v: { id: "v10d4", t: "Skalerbarhet", en: "Scaling & performance", kw: ["skalere", "ytelse", "flaskehals", "optimalisere", "belastning"] }, g: { id: "g10d4", t: "Faglig presentasjon", en: "Technical presentation language", kw: ["Jeg vil presentere", "La oss se på", "Som vi kan se"] } },
-      5: { v: { id: "v10d5", t: "Versjonskontroll", en: "Version control & Git", kw: ["Git", "versjonskontroll", "gren", "sammenslåing", "commit", "pull request"] }, g: { id: "g10d5", t: "Instruksjonssetninger", en: "Instruction sentences", kw: ["Sørg for at", "Husk å", "Det er viktig å", "Pass på at"] } },
+    theme: "Teknologi i hverdagen og på jobb", focus: "Technology in daily life, workplace communication, IT, DevOps overview, digital society", days: {
+      0: { v: { id: "v10d0", t: "Datamaskin og internett", en: "Computers & internet in daily life", kw: ["datamaskin", "internett", "nettleser", "app", "oppdatering", "passord", "sky"] }, g: { id: "g10d0", t: "Passiv – forklaringer", en: "Passive in explanations", kw: ["blir brukt", "blir implementert", "ble opprettet"] } },
+      1: { v: { id: "v10d1", t: "E-post, møter og presentasjoner", en: "Email, meetings & presentations", kw: ["e-post", "møte", "presentasjon", "dagsorden", "referat", "foredrag", "vedlegg"] }, g: { id: "g10d1", t: "Sammensatte substantiv", en: "Compound nouns", kw: ["programvareutvikling", "arbeidsoppgave", "brukergrensesnitt", "sikkerhetskopi"] } },
+      2: { v: { id: "v10d2", t: "Programvare og utvikling", en: "Software & development", kw: ["programvare", "kode", "Agile", "testing", "API", "versjonskontroll", "feilsøking"] }, g: { id: "g10d2", t: "Tidsuttrykk – avansert", en: "Advanced time expressions", kw: ["i løpet av", "innen", "fra og med", "fortløpende"] } },
+      3: { v: { id: "v10d3", t: "DevOps og skyløsninger", en: "DevOps & cloud", kw: ["DevOps", "sky", "Docker", "pipeline", "automatisering", "overvåking", "deploy"] }, g: { id: "g10d3", t: "Konjunktiv – ville/skulle", en: "Conditional (hypothetical)", kw: ["dette ville", "det skulle", "man kunne", "ideelt sett"] } },
+      4: { v: { id: "v10d4", t: "Digitalt samfunn", en: "Digital society", kw: ["digitalisering", "personvern", "kunstig intelligens", "IT-sikkerhet", "BankID", "Altinn"] }, g: { id: "g10d4", t: "Faglig presentasjon", en: "Technical presentation language", kw: ["Jeg vil presentere", "La oss se på", "Som vi kan se"] } },
+      5: { v: { id: "v10d5", t: "Forklare teknisk på norsk", en: "Explaining tech in Norwegian", kw: ["forklare", "beskrive", "oppsummere", "presentere løsning", "tankeprosess"] }, g: { id: "g10d5", t: "Instruksjonssetninger", en: "Instruction sentences", kw: ["Sørg for at", "Husk å", "Det er viktig å", "Pass på at"] } },
       6: null
     }
   },
@@ -556,7 +556,7 @@ export default function App() {
       {/* title */}
       <div style={{ marginBottom: 18, display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 23, fontWeight: 800, color: C.text }}>🇳🇴 Norwegian B1 Tracker <span style={{ fontSize: 13, fontWeight: 500, color: C.textDim }}>v3.1</span></h1>
+          <h1 style={{ margin: 0, fontSize: 23, fontWeight: 800, color: C.text }}>🇳🇴 Norwegian B1 Tracker <span style={{ fontSize: 13, fontWeight: 500, color: C.textDim }}>v4.0</span></h1>
           <p style={{ margin: "3px 0 0", color: C.textDim, fontSize: 11 }}>Writing → Speaking progression · skriftlig → blandet → muntlig-fokus → muntlig · progress saved</p>
         </div>
         <button onClick={toggleDark} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 16, lineHeight: 1, flexShrink: 0, marginTop: 2, transition: "all 0.2s" }} title={dark ? "Switch to light mode" : "Switch to dark mode"}>{dark ? "☀️" : "🌙"}</button>
