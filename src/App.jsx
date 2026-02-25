@@ -29,12 +29,27 @@ const MODES = {
   muntlig:       { id: "muntlig",       label: "Muntlig",       en: "Full oral",       icon: "🎤",    ratio: "100% spoken" },
 };
 
-const PHASES = [
-  { id: 1, label: "Foundation", subtitle: "Skriftlig (Writing)", weeks: [1, 2, 3], color: SHARED.green, mode: "skriftlig" },
-  { id: 2, label: "Helse + Bolig + Kultur", subtitle: "Blandet (Mixed)", weeks: [4, 5, 6], color: SHARED.blue, mode: "blandet" },
-  { id: 3, label: "Samfunn + Diskusjon", subtitle: "Muntlig-fokus", weeks: [7, 8, 9], color: SHARED.purple, mode: "muntlig_fokus" },
-  { id: 4, label: "Tech + Intervju + Eksamen", subtitle: "Muntlig (Full oral)", weeks: [10, 11, 12], color: SHARED.gold, mode: "muntlig" },
+// ─── LEVELS & PHASES ────────────────────────────────────────────────────────
+const LEVELS = {
+  A1: { label: "A1 — Beginner",      n: 12, weeks: [[1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12]] },
+  A2: { label: "A2 — Elementary",     n: 8,  weeks: [[1,2],[3],[4,5],[6],[7,8],[9],[10,11],[12]] },
+  B1: { label: "B1 — Intermediate",   n: 4,  weeks: [[1,2,3],[4,5,6],[7,8,9],[10,11,12]] },
+};
+const PHASE_DEFS = [
+  { id: 1, label: "Foundation",    subtitle: "Skriftlig (Writing)",  color: SHARED.green,  mode: "skriftlig" },
+  { id: 2, label: "Hverdag + Kultur", subtitle: "Blandet (Mixed)",     color: SHARED.blue,   mode: "blandet" },
+  { id: 3, label: "Samfunn + Diskusjon", subtitle: "Muntlig-fokus",       color: SHARED.purple, mode: "muntlig_fokus" },
+  { id: 4, label: "Tech + Eksamen",  subtitle: "Muntlig (Full oral)",  color: SHARED.gold,   mode: "muntlig" },
 ];
+function phasesFor(level) {
+  const aw = LEVELS[level].weeks;
+  const pp = aw.length / 4;
+  return PHASE_DEFS.map((def, i) => ({
+    ...def,
+    dwRange: [i * pp + 1, (i + 1) * pp],          // display week range [from, to] (1-based)
+    curWeekGroups: aw.slice(i * pp, (i + 1) * pp),  // array of curWeek arrays
+  }));
+}
 
 // ─── CURRICULUM (all 84 unique topics) ───────────────────────────────────────
 const CUR = {
@@ -179,23 +194,27 @@ const DAY_LAYOUT = [
 ];
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
-function phaseFor(w) { return PHASES.find(p => p.weeks.includes(w)) || PHASES[0]; }
-function modeFor(w) { return MODES[phaseFor(w).mode]; }
+function phaseForDw(dw, phases) { return phases.find(p => dw >= p.dwRange[0] && dw <= p.dwRange[1]) || phases[0]; }
+function modeForDw(dw, phases) { return MODES[phaseForDw(dw, phases).mode]; }
 
-function topicsBefore(week, day, states) {
+function topicsBefore(activeWeeks, dw, day, states) {
+  // Walk all CUR weeks from all display weeks before dw, plus current dw's curWeeks up to (day - 1)
   const done = [], skipped = [];
-  for (let w = 1; w <= 12; w++) {
-    const wd = CUR[w]; if (!wd) continue;
-    for (let d = 0; d <= 5; d++) {
-      if (w === week && d >= day) break;
-      const dd = wd.days[d]; if (!dd) continue;
-      ["v", "g"].forEach(k => {
-        const t = dd[k]; if (!t) return;
-        if (states[t.id] === "done") done.push(t);
-        if (states[t.id] === "skip") skipped.push(t);
-      });
+  for (let di = 0; di < dw; di++) {
+    const curWeeks = activeWeeks[di];
+    const isCurrentDw = di === dw - 1;
+    for (const w of curWeeks) {
+      const wd = CUR[w]; if (!wd) continue;
+      for (let d = 0; d <= 5; d++) {
+        if (isCurrentDw && d >= day) break;
+        const dd = wd.days[d]; if (!dd) continue;
+        ["v", "g"].forEach(k => {
+          const t = dd[k]; if (!t) return;
+          if (states[t.id] === "done") done.push(t);
+          if (states[t.id] === "skip") skipped.push(t);
+        });
+      }
     }
-    if (w === week) break;
   }
   return { done, skipped };
 }
@@ -348,29 +367,39 @@ function buildInstructions(mode, L) {
   }
 }
 
-function buildPrompt(week, dayIdx, states) {
-  const phase = phaseFor(week), wd = CUR[week], layout = DAY_LAYOUT[dayIdx];
-  const dd = wd.days[dayIdx], isReview = dayIdx === 6, isLight = layout.type === "light";
-  const mode = modeFor(week);
-  const { done, skipped } = topicsBefore(week, dayIdx, states);
+function buildPrompt(curWeeks, dw, dayIdx, states, activeWeeks, phases) {
+  const phase = phaseForDw(dw, phases), layout = DAY_LAYOUT[dayIdx];
+  const isReview = dayIdx === 6, isLight = layout.type === "light";
+  const mode = modeForDw(dw, phases);
+  const { done, skipped } = topicsBefore(activeWeeks, dw, dayIdx, states);
   const L = [];
 
+  // Collect all topics for this day from all merged CUR weeks
+  const dayTopics = curWeeks.flatMap(w => { const d = CUR[w]?.days[dayIdx]; return d ? [{ week: w, data: d }] : []; });
+  const themes = curWeeks.map(w => CUR[w]?.theme).filter(Boolean).join(" + ");
+  const focuses = curWeeks.map(w => CUR[w]?.focus).filter(Boolean).join(" · ");
+
   L.push(`=== NORWEGIAN B1 ${MODE_HEADERS[mode.id]} DAILY LESSON PLAN ===`);
-  L.push(`Week ${week} · Day ${dayIdx + 1} (${layout.day}) · ${isLight ? "Light Day (mobile-friendly)" : isReview ? "Weekly Review" : "Full PC Day"}`);
+  L.push(`Week ${dw} · Day ${dayIdx + 1} (${layout.day}) · ${isLight ? "Light Day (mobile-friendly)" : isReview ? "Weekly Review" : "Full PC Day"}`);
   L.push(`Phase: ${phase.label} — ${phase.subtitle}`);
   L.push(`Learning Mode: ${mode.label} (${mode.en}) — ${mode.ratio}`);
-  L.push(`Week Theme: ${wd.theme} — ${wd.focus}\n`);
+  L.push(`Week Theme: ${themes} — ${focuses}`);
+  if (curWeeks.length > 1) L.push(`(Merged ${curWeeks.length} curriculum weeks — intensive pace)`);
+  L.push(``);
 
-  if (!isReview && dd) {
+  if (!isReview && dayTopics.length > 0) {
     L.push(`--- TODAY'S NEW TOPICS ---`);
-    if (dd.v) { L.push(`[VOCAB] ${dd.v.t} (${dd.v.en}) — Status: ${states[dd.v.id] || "pending"}`); L.push(`  Keywords: ${dd.v.kw.join(", ")}`); }
-    if (dd.g) { L.push(`[GRAMMAR] ${dd.g.t} (${dd.g.en}) — Status: ${states[dd.g.id] || "pending"}`); L.push(`  Focus: ${dd.g.kw.join(", ")}`); }
+    dayTopics.forEach(({ week: w, data: dd }) => {
+      if (curWeeks.length > 1) L.push(`[${CUR[w].theme}]`);
+      if (dd.v) { L.push(`[VOCAB] ${dd.v.t} (${dd.v.en}) — Status: ${states[dd.v.id] || "pending"}`); L.push(`  Keywords: ${dd.v.kw.join(", ")}`); }
+      if (dd.g) { L.push(`[GRAMMAR] ${dd.g.t} (${dd.g.en}) — Status: ${states[dd.g.id] || "pending"}`); L.push(`  Focus: ${dd.g.kw.join(", ")}`); }
+    });
     L.push(``);
   }
 
   L.push(`--- SESSION STRUCTURE ---`);
   if (isReview) {
-    buildReviewSessions(mode, week, L);
+    buildReviewSessions(mode, dw, L);
   } else if (isLight) {
     buildLightSessions(mode, L);
   } else {
@@ -378,7 +407,6 @@ function buildPrompt(week, dayIdx, states) {
   }
   L.push(`S3 (30 min): ${S3_LABELS[mode.id]} — see below.\n`);
 
-  // ── Refresher ──
   buildRefresher(mode, done, L);
   L.push(``);
 
@@ -395,7 +423,7 @@ function buildPrompt(week, dayIdx, states) {
 // ─── STORAGE ─────────────────────────────────────────────────────────────────
 const SK = "norwegian_b1_muntlig_v1";
 function migrateStorage() { try { const old = localStorage.getItem("norwegian_b1_v1"); if (old && !localStorage.getItem(SK)) { localStorage.setItem(SK, old); } } catch {} }
-function load() { migrateStorage(); try { const r = localStorage.getItem(SK); return r ? JSON.parse(r) : { ts: {}, dd: {} }; } catch { return { ts: {}, dd: {} }; } }
+function load() { migrateStorage(); try { const r = localStorage.getItem(SK); return r ? JSON.parse(r) : { ts: {}, dd: {}, level: "A1" }; } catch { return { ts: {}, dd: {}, level: "A1" }; } }
 function save(s) { try { localStorage.setItem(SK, JSON.stringify(s)); } catch (e) { console.error(e); } }
 
 // ─── TOPIC CHIP ──────────────────────────────────────────────────────────────
@@ -438,17 +466,18 @@ function SessionSummary({ mode, isLight, isReview }) {
 }
 
 // ─── DAY CARD ────────────────────────────────────────────────────────────────
-function DayCard({ weekNum, dayIdx, topicStates, daysDone, onDayToggle, onTopicToggle, C }) {
+function DayCard({ dw, curWeeks, dayIdx, topicStates, daysDone, onDayToggle, onTopicToggle, C, activeWeeks, phases }) {
   const [open, setOpen] = useState(false);
   const [showP, setShowP] = useState(false);
   const [copied, setCopied] = useState(false);
-  const layout = DAY_LAYOUT[dayIdx], phase = phaseFor(weekNum);
-  const mode = modeFor(weekNum);
-  const dd = CUR[weekNum]?.days[dayIdx];
+  const layout = DAY_LAYOUT[dayIdx], phase = phaseForDw(dw, phases);
+  const mode = modeForDw(dw, phases);
   const isReview = dayIdx === 6, isLight = layout.type === "light";
-  const isDone = !!(daysDone[weekNum] && daysDone[weekNum][dayIdx]);
-  const topics = []; if (dd) { if (dd.v) topics.push(dd.v); if (dd.g) topics.push(dd.g); }
-  const prompt = buildPrompt(weekNum, dayIdx, topicStates);
+  // daysDone keyed by displayWeek
+  const isDone = !!(daysDone[dw] && daysDone[dw][dayIdx]);
+  // Collect all topics from all merged CUR weeks for this day
+  const topics = curWeeks.flatMap(w => { const d = CUR[w]?.days[dayIdx]; return d ? [d.v, d.g].filter(Boolean) : []; });
+  const prompt = buildPrompt(curWeeks, dw, dayIdx, topicStates, activeWeeks, phases);
 
   return (
     <div style={{ background: isDone ? phase.color.light + "12" : C.surface, border: `1px solid ${isDone ? phase.color.mid + "44" : C.border}`, borderRadius: 12, overflow: "hidden", transition: "all 0.2s" }}>
@@ -459,9 +488,9 @@ function DayCard({ weekNum, dayIdx, topicStates, daysDone, onDayToggle, onTopicT
           <span style={{ color: C.text, fontWeight: 700, fontSize: 13 }}>{layout.day}</span>
           <span style={{ color: C.textDim, fontSize: 9, marginLeft: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>{layout.type === "heavy" ? "Full PC" : layout.type === "light" ? "Light / Mobile" : "Review"}</span>
         </div>
-        {!isReview && topics.length > 0 && <span style={{ color: C.textDim, fontSize: 10, textAlign: "right", maxWidth: 180, lineHeight: 1.3 }}>{topics.map(t => t.t).join(" · ")}</span>}
+        {!isReview && topics.length > 0 && <span style={{ color: C.textDim, fontSize: 10, textAlign: "right", maxWidth: 220, lineHeight: 1.3 }}>{topics.map(t => t.t).join(" · ")}</span>}
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <button onClick={e => { e.stopPropagation(); onDayToggle(weekNum, dayIdx); }} style={{ width: 24, height: 24, borderRadius: 6, border: isDone ? `2px solid ${phase.color.mid}` : `2px solid ${C.border}`, background: isDone ? phase.color.mid : "transparent", color: isDone ? "#fff" : C.textDim, cursor: "pointer", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>{isDone ? "✓" : ""}</button>
+          <button onClick={e => { e.stopPropagation(); onDayToggle(dw, dayIdx); }} style={{ width: 24, height: 24, borderRadius: 6, border: isDone ? `2px solid ${phase.color.mid}` : `2px solid ${C.border}`, background: isDone ? phase.color.mid : "transparent", color: isDone ? "#fff" : C.textDim, cursor: "pointer", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>{isDone ? "✓" : ""}</button>
           <span style={{ color: C.textDim, fontSize: 13 }}>{open ? "▲" : "▼"}</span>
         </div>
       </div>
@@ -470,7 +499,23 @@ function DayCard({ weekNum, dayIdx, topicStates, daysDone, onDayToggle, onTopicT
       {open && (
         <div style={{ borderTop: `1px solid ${C.border}`, padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
           {/* topics */}
-          {!isReview ? topics.map(t => <TopicChip key={t.id} topic={t} state={topicStates[t.id] || "pending"} onToggle={onTopicToggle} C={C} />) : <div style={{ color: C.textMute, fontSize: 12, fontStyle: "italic" }}>Review day — no new topics. Assess all Week {weekNum} topics.</div>}
+          {!isReview ? (
+            curWeeks.length > 1 ? (
+              // Merged weeks: group topics by CUR week with labels
+              curWeeks.map(w => {
+                const d = CUR[w]?.days[dayIdx]; if (!d) return null;
+                const wTopics = [d.v, d.g].filter(Boolean);
+                return (
+                  <div key={w}>
+                    <div style={{ color: C.textDim, fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>{CUR[w].theme}</div>
+                    {wTopics.map(t => <TopicChip key={t.id} topic={t} state={topicStates[t.id] || "pending"} onToggle={onTopicToggle} C={C} />)}
+                  </div>
+                );
+              })
+            ) : (
+              topics.map(t => <TopicChip key={t.id} topic={t} state={topicStates[t.id] || "pending"} onToggle={onTopicToggle} C={C} />)
+            )
+          ) : <div style={{ color: C.textMute, fontSize: 12, fontStyle: "italic" }}>Review day — no new topics. Assess all Week {dw} topics.</div>}
 
           {/* sessions summary */}
           <div style={{ background: C.surfaceHi, borderRadius: 8, padding: "8px 10px" }}>
@@ -503,9 +548,10 @@ function DayCard({ weekNum, dayIdx, topicStates, daysDone, onDayToggle, onTopicT
 
 // ─── APP ─────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [week, setWeek] = useState(1);
-  const [ts, setTs] = useState({});   // topicStates
-  const [dd, setDd] = useState({});   // daysDone
+  const [dw, setDw] = useState(1);       // display week (1-based)
+  const [level, setLevel] = useState("A1");
+  const [ts, setTs] = useState({});       // topicStates
+  const [dd, setDd] = useState({});       // daysDone (keyed by display week)
   const [dark, setDark] = useState(() => {
     try { return localStorage.getItem("nb1_dark") === "1"; } catch { return false; }
   });
@@ -513,7 +559,13 @@ export default function App() {
 
   const C = dark ? DARK : LIGHT;
 
-  useEffect(() => { const s = load(); setTs(s.ts || {}); setDd(s.dd || {}); setLoading(false); }, []);
+  useEffect(() => {
+    const s = load();
+    setTs(s.ts || {});
+    setDd(s.dd || {});
+    if (s.level && LEVELS[s.level]) setLevel(s.level);
+    setLoading(false);
+  }, []);
 
   const toggleDark = () => {
     const next = !dark;
@@ -521,26 +573,42 @@ export default function App() {
     try { localStorage.setItem("nb1_dark", next ? "1" : "0"); } catch {}
   };
 
-  const persist = useCallback((a, b) => save({ ts: a, dd: b }), []);
+  const persist = useCallback((a, b, lvl) => save({ ts: a, dd: b, level: lvl }), []);
 
   const toggleTopic = (id, newState) => {
     const next = { ...ts, [id]: ts[id] === newState ? "pending" : newState };
-    setTs(next); persist(next, dd);
+    setTs(next); persist(next, dd, level);
   };
   const toggleDay = (w, d) => {
     const next = { ...dd, [w]: { ...(dd[w] || {}), [d]: !(dd[w]?.[d]) } };
-    setDd(next); persist(ts, next);
+    setDd(next); persist(ts, next, level);
+  };
+  const changeLevel = (newLevel) => {
+    setLevel(newLevel);
+    setDw(1);
+    persist(ts, dd, newLevel);
   };
 
-  // stats
+  // Derived data for current level
+  const activeWeeks = LEVELS[level].weeks;       // array of arrays, e.g. [[1,2,3],[4,5,6],...]
+  const totalDisplayWeeks = activeWeeks.length;
+  const curWeeks = activeWeeks[dw - 1] || activeWeeks[0]; // CUR week(s) for current display week
+  const phases = phasesFor(level);
+
+  // Stats — count topics only for active level's CUR weeks
+  const allCurWeeks = activeWeeks.flat();
   let totalTopics = 0;
-  for (let w = 1; w <= 12; w++) { const days = CUR[w].days; for (let d = 0; d <= 5; d++) if (days[d]) totalTopics += 2; }
+  for (const w of allCurWeeks) { const days = CUR[w]?.days; if (!days) continue; for (let d = 0; d <= 5; d++) if (days[d]) totalTopics += 2; }
   const doneT = Object.values(ts).filter(s => s === "done").length;
   const skipT = Object.values(ts).filter(s => s === "skip").length;
-  const totalDays = 84;
+  const totalDays = totalDisplayWeeks * 7;
   const doneD = Object.values(dd).reduce((a, w) => a + Object.values(w).filter(Boolean).length, 0);
-  const phase = phaseFor(week);
-  const mode = modeFor(week);
+  const phase = phaseForDw(dw, phases);
+  const mode = modeForDw(dw, phases);
+
+  // Week theme (joined for merged weeks)
+  const themes = curWeeks.map(w => CUR[w]?.theme).filter(Boolean).join(" + ");
+  const focuses = curWeeks.map(w => CUR[w]?.focus).filter(Boolean).join(" · ");
 
   if (loading) return <div style={{ background: C.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: C.textMute, fontFamily: "'Sora',sans-serif" }}>Loading…</div>;
 
@@ -556,10 +624,28 @@ export default function App() {
       {/* title */}
       <div style={{ marginBottom: 18, display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 23, fontWeight: 800, color: C.text }}>🇳🇴 Norwegian B1 Tracker <span style={{ fontSize: 13, fontWeight: 500, color: C.textDim }}>v4.0</span></h1>
-          <p style={{ margin: "3px 0 0", color: C.textDim, fontSize: 11 }}>Writing → Speaking progression · skriftlig → blandet → muntlig-fokus → muntlig · progress saved</p>
+          <h1 style={{ margin: 0, fontSize: 23, fontWeight: 800, color: C.text }}>🇳🇴 Norwegian B1 Tracker <span style={{ fontSize: 13, fontWeight: 500, color: C.textDim }}>v5.0</span></h1>
+          <p style={{ margin: "3px 0 0", color: C.textDim, fontSize: 11 }}>Writing → Speaking · {level} · {totalDisplayWeeks} weeks · progress saved</p>
         </div>
         <button onClick={toggleDark} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 16, lineHeight: 1, flexShrink: 0, marginTop: 2, transition: "all 0.2s" }} title={dark ? "Switch to light mode" : "Switch to dark mode"}>{dark ? "☀️" : "🌙"}</button>
+      </div>
+
+      {/* level selector */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 12 }}>
+        {Object.entries(LEVELS).map(([key, lvl]) => {
+          const active = key === level;
+          return (
+            <button key={key} onClick={() => changeLevel(key)} style={{
+              flex: 1, padding: "8px 6px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: active ? 700 : 500, textAlign: "center", transition: "all 0.2s",
+              border: active ? `2px solid ${C.blue.mid}` : `1px solid ${C.border}`,
+              background: active ? C.blue.mid : C.surface,
+              color: active ? "#fff" : C.textMute,
+            }}>
+              <div style={{ fontWeight: 700 }}>{key}</div>
+              <div style={{ fontSize: 9, opacity: 0.8 }}>{lvl.n} weeks{lvl.n < 12 ? ` (×${12 / lvl.n} pace)` : ""}</div>
+            </button>
+          );
+        })}
       </div>
 
       {/* stats row */}
@@ -581,9 +667,9 @@ export default function App() {
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 13px", marginBottom: 12 }}>
         <div style={{ color: C.textDim, fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>Learning Mode</div>
         <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-          {PHASES.map(p => {
+          {phases.map(p => {
             const m = MODES[p.mode];
-            const active = p.weeks.includes(week);
+            const active = dw >= p.dwRange[0] && dw <= p.dwRange[1];
             return (
               <div key={p.id} style={{ flex: 1, textAlign: "center" }}>
                 <div style={{
@@ -602,7 +688,7 @@ export default function App() {
           <span style={{ color: C.textDim, fontSize: 9 }}>✍️ Writing</span>
           <div style={{ flex: 1, height: 3, background: C.surfaceHi, borderRadius: 3, margin: "0 8px", position: "relative", overflow: "hidden" }}>
             <div style={{
-              width: `${((week - 1) / 11) * 100}%`,
+              width: `${totalDisplayWeeks > 1 ? ((dw - 1) / (totalDisplayWeeks - 1)) * 100 : 100}%`,
               height: "100%",
               background: `linear-gradient(90deg, ${SHARED.green.mid}, ${SHARED.blue.mid}, ${SHARED.purple.mid}, ${SHARED.gold.mid})`,
               borderRadius: 3, transition: "width 0.4s",
@@ -614,11 +700,12 @@ export default function App() {
 
       {/* phase nav */}
       <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
-        {PHASES.map(p => {
-          const active = p.weeks.includes(week);
+        {phases.map(p => {
+          const active = dw >= p.dwRange[0] && dw <= p.dwRange[1];
           const m = MODES[p.mode];
-          return <button key={p.id} onClick={() => setWeek(p.weeks[0])} style={{ flex: "1 1 110px", padding: "7px 9px", borderRadius: 8, border: active ? `2px solid ${p.color.mid}` : `1px solid ${C.border}`, background: active ? p.color.light + "18" : C.surface, color: active ? p.color.mid : C.textMute, fontFamily: "inherit", fontSize: 11, fontWeight: active ? 700 : 500, cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
-            <div style={{ fontSize: 8, opacity: 0.55, textTransform: "uppercase", letterSpacing: 0.8 }}>Phase {p.id} · {m.icon}</div>
+          const wkLabel = p.dwRange[0] === p.dwRange[1] ? `Wk ${p.dwRange[0]}` : `Wk ${p.dwRange[0]}–${p.dwRange[1]}`;
+          return <button key={p.id} onClick={() => setDw(p.dwRange[0])} style={{ flex: "1 1 110px", padding: "7px 9px", borderRadius: 8, border: active ? `2px solid ${p.color.mid}` : `1px solid ${C.border}`, background: active ? p.color.light + "18" : C.surface, color: active ? p.color.mid : C.textMute, fontFamily: "inherit", fontSize: 11, fontWeight: active ? 700 : 500, cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
+            <div style={{ fontSize: 8, opacity: 0.55, textTransform: "uppercase", letterSpacing: 0.8 }}>Phase {p.id} · {m.icon} · {wkLabel}</div>
             <div style={{ fontWeight: 700 }}>{p.label}</div>
             <div style={{ fontSize: 9, opacity: 0.7 }}>{m.label}</div>
           </button>;
@@ -627,40 +714,44 @@ export default function App() {
 
       {/* week selector */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-          <span style={{ color: phase.color.mid, fontSize: 19, fontWeight: 800 }}>Week {week}</span>
-          <span style={{ color: C.textMute, fontSize: 13, fontWeight: 600 }}>— {CUR[week].theme}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+          <span style={{ color: phase.color.mid, fontSize: 19, fontWeight: 800 }}>Week {dw}</span>
+          <span style={{ color: C.textMute, fontSize: 13, fontWeight: 600 }}>— {themes}</span>
           <span style={{ color: C.textDim, fontSize: 10, background: C.surfaceHi, borderRadius: 4, padding: "2px 6px" }}>{mode.icon} {mode.label}</span>
+          {curWeeks.length > 1 && <span style={{ color: C.textDim, fontSize: 9, background: C.purple.light + "33", borderRadius: 4, padding: "2px 6px", fontWeight: 700 }}>×{curWeeks.length} merged</span>}
         </div>
-        <p style={{ margin: "0 0 8px", color: C.textDim, fontSize: 11 }}>{CUR[week].focus}</p>
+        <p style={{ margin: "0 0 8px", color: C.textDim, fontSize: 11 }}>{focuses}</p>
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-          {[...Array(12)].map((_, i) => {
-            const w = i + 1, p = phaseFor(w);
+          {activeWeeks.map((_, i) => {
+            const w = i + 1, p = phaseForDw(w, phases);
             const allDone = dd[w] && Object.keys(dd[w]).filter(k => dd[w][k]).length === 7;
-            return <button key={w} onClick={() => setWeek(w)} style={{ width: 32, height: 32, borderRadius: 7, border: w === week ? `2px solid ${p.color.mid}` : "1px solid " + C.border, background: allDone ? p.color.light + "44" : w === week ? p.color.light + "18" : C.surface, color: w === week ? p.color.mid : allDone ? p.color.mid : C.textMute, fontWeight: w === week || allDone ? 700 : 400, fontSize: 12, cursor: "pointer", position: "relative", fontFamily: "inherit" }}>{w}{allDone && <span style={{ position: "absolute", top: -5, right: -5, fontSize: 9 }}>✅</span>}</button>;
+            const merged = activeWeeks[i].length;
+            return <button key={w} onClick={() => setDw(w)} style={{ minWidth: 32, height: 32, borderRadius: 7, border: w === dw ? `2px solid ${p.color.mid}` : "1px solid " + C.border, background: allDone ? p.color.light + "44" : w === dw ? p.color.light + "18" : C.surface, color: w === dw ? p.color.mid : allDone ? p.color.mid : C.textMute, fontWeight: w === dw || allDone ? 700 : 400, fontSize: 12, cursor: "pointer", position: "relative", fontFamily: "inherit", padding: "0 6px" }}>{w}{merged > 1 && <span style={{ fontSize: 8, opacity: 0.6, verticalAlign: "super" }}>×{merged}</span>}{allDone && <span style={{ position: "absolute", top: -5, right: -5, fontSize: 9 }}>✅</span>}</button>;
           })}
         </div>
       </div>
 
       {/* day cards */}
       <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-        {DAY_LAYOUT.map((_, i) => <DayCard key={i} weekNum={week} dayIdx={i} topicStates={ts} daysDone={dd} onDayToggle={toggleDay} onTopicToggle={toggleTopic} C={C} />)}
+        {DAY_LAYOUT.map((_, i) => <DayCard key={i} dw={dw} curWeeks={curWeeks} dayIdx={i} topicStates={ts} daysDone={dd} onDayToggle={toggleDay} onTopicToggle={toggleTopic} C={C} activeWeeks={activeWeeks} phases={phases} />)}
       </div>
 
       {/* legend */}
       <div style={{ marginTop: 20, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "11px 13px" }}>
         <div style={{ color: C.blue.mid, fontSize: 11, fontWeight: 700, marginBottom: 5 }}>💡 How it works</div>
         <div style={{ color: C.textDim, fontSize: 11, lineHeight: 1.85 }}>
-          1. Expand a day → see its <strong style={{ color: C.text }}>unique vocab + grammar topics</strong>.<br />
-          2. Mark topics <strong style={{ color: C.green.mid }}>✓ done</strong> after learning, or <strong style={{ color: C.red.mid }}>✕ skip</strong> if already known.<br />
-          3. Tap <strong style={{ color: C.text }}>Generate & Copy</strong> — the prompt adapts to your current learning mode and carries your full topic history.<br />
-          4. <strong style={{ color: C.text }}>Weeks 1–3 (Skriftlig)</strong>: All written — build vocab and grammar through writing.<br />
-          5. <strong style={{ color: C.text }}>Weeks 4–6 (Blandet)</strong>: Write first, then speak — start thinking in Norwegian aloud.<br />
-          6. <strong style={{ color: C.text }}>Weeks 7–9 (Muntlig-fokus)</strong>: Mostly oral, with brief written notes as support.<br />
-          7. <strong style={{ color: C.text }}>Weeks 10–12 (Muntlig)</strong>: Full speaking — mock muntlig exams, interview prep, no writing crutch.<br />
-          8. <strong style={{ color: C.text }}>Session 3 (Refresher)</strong> adapts: written → mixed → oral spaced repetition.<br />
-          9. <strong style={{ color: C.text }}>Sundays</strong>: Review day — written review (early) → mock muntlig exam (later).<br />
-          10. Tick the day ✓ when all 3 sessions are complete.
+          1. Pick your level: <strong style={{ color: C.text }}>A1</strong> (12 weeks), <strong style={{ color: C.text }}>A2</strong> (8 weeks, 2× pace), <strong style={{ color: C.text }}>B1</strong> (4 weeks, 3× pace).<br />
+          2. Expand a day → see its <strong style={{ color: C.text }}>unique vocab + grammar topics</strong>. Merged weeks show multiple topic sets per day.<br />
+          3. Mark topics <strong style={{ color: C.green.mid }}>✓ done</strong> after learning, or <strong style={{ color: C.red.mid }}>✕ skip</strong> if already known.<br />
+          4. Tap <strong style={{ color: C.text }}>Generate & Copy</strong> — the prompt adapts to your level, mode, and topic history.<br />
+          {phases.map((p, i) => {
+            const m = MODES[p.mode];
+            const wkLabel = p.dwRange[0] === p.dwRange[1] ? `Week ${p.dwRange[0]}` : `Weeks ${p.dwRange[0]}–${p.dwRange[1]}`;
+            return <span key={i}>{i + 5}. <strong style={{ color: C.text }}>{wkLabel} ({m.label})</strong>: {m.id === "skriftlig" ? "All written — build vocab and grammar through writing." : m.id === "blandet" ? "Write first, then speak — start thinking in Norwegian aloud." : m.id === "muntlig_fokus" ? "Mostly oral, with brief written notes as support." : "Full speaking — mock muntlig exams, interview prep."}<br /></span>;
+          })}
+          {phases.length + 5}. <strong style={{ color: C.text }}>Session 3 (Refresher)</strong> adapts: written → mixed → oral spaced repetition.<br />
+          {phases.length + 6}. <strong style={{ color: C.text }}>Sundays</strong>: Review day — written review (early) → mock muntlig exam (later).<br />
+          {phases.length + 7}. Tick the day ✓ when all 3 sessions are complete.
         </div>
       </div>
     </div>
