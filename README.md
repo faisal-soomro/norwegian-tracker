@@ -1,49 +1,69 @@
-# Norwegian B1 Muntlig Tracker
+# Norwegian tracker — «I dag»
 
-A speaking-first React app for preparing for the Norskproven B1 muntlig (oral) exam. Structured 12-week curriculum with role-plays, opinion monologues, paired discussion practice, and mock exam simulations — all driven by AI prompt generation via Claude.
+A one-page daily tracker for keeping spoken Norwegian warm after the Norskprøve muntlig (September
+2026), following [`norsk_daily/docs/plan-v3.md`](https://github.com/faisal-soomro/norsk_daily/blob/main/docs/plan-v3.md):
+one theme per week for twelve weeks, ten minutes of spoken grammar on weekdays, thirty minutes of
+talking on Saturday and Sunday.
 
-## Features
+The page is static HTML. It is **generated** from the markdown in `norsk_daily`; nothing here is
+content. Progress lives in the browser's localStorage, so it is per device, and there is no account
+and no server-side state.
 
-- **12-week speaking-first curriculum** with 84 topics across 4 phases:
-  - **Foundation** (Weeks 1-3) — Introductions, daily life, opinions, core grammar
-  - **Tech + Norsk** (Weeks 4-6) — IT vocabulary, spoken workplace communication, Norwegian culture & society
-  - **DevOps + Diskusjon** (Weeks 7-9) — CI/CD, cloud, monitoring, verbal explanations, argumentation
-  - **Avansert + Intervju** (Weeks 10-12) — Software engineering, interview prep, muntlig exam simulation
-- **Muntlig-focused sessions:**
-  - Heavy days: Oral drills + role-play scenarios + opinion monologues
-  - Light days: Listening & shadowing + quick-fire speaking
-  - Sundays: Full mock muntlig exam (self-intro, opinion, paired discussion)
-- **Oral Refresher** — Spaced repetition done out loud: vocab recall, spoken grammar drills, impromptu speaking prompts
-- **AI prompt generation** — One-click prompt builder with full topic history, ready to paste into Claude for speaking-focused lessons
-- **Dark mode** — Toggle between light and dark themes, preference saved across sessions
+## What the page shows
 
-## Installation
+| Day | Ten or thirty minutes | Built from |
+|---|---|---|
+| Mon–Fri | The day's grammar rule, one of your own model answers with audio, three words from that clip with a gloss and an example sentence, five spoken transformation drills on sentences from the answer with the answer key folded, one 60-second cold round that must use the three words, a Ferdig button | `exam/drills-v3.md`, `exam/tema-familier.md`, `audio/modellsvar/` |
+| Sat | Warm-up clip, the week's 15 words as chips, one ChatGPT voice prompt for a 25-minute free conversation corrected only on the week's five grammar points and steered to bring the 15 words back | theme title, `ord:` blocks |
+| Sun | An unseen question with a 2-minute timer, a ChatGPT prompt that ends in a GAP-RAPPORT, a text box that keeps the report for the next Claude session | `exam/drills-v3.md` (`søndag:`) |
+| Week 11 | Same weekday shape, drills drawn from all ten weeks | — |
+| Week 12 | Mock: a question from the full learnnorsk inventory each day, timer, then the day's rule | `exam/alle-sporsmal.md` |
+
+«Ferdig» advances a queue, never a calendar. Tapping a day chip or the week arrows lets you look
+around without changing the queue.
+
+## Build
+
+Requires Python 3 and a checkout of `norsk_daily` next to this repo (or point `NORSK_DAILY` at it).
+The audio must exist there first: `./scripts/generate-modellsvar-audio.sh` in `norsk_daily`.
 
 ```bash
-npm install
+python3 build.py
 ```
 
-## Running
+Writes `site/index.html` and copies the 40 clips into `site/audio/`. `site/` is committed, so the
+server needs nothing but this repo.
+
+## Run
+
+Locally:
 
 ```bash
-npm run dev
+python3 -m http.server 8765 --directory site
 ```
 
-Open `http://localhost:5173` in your browser.
+On bulbul (the fleet gateway in `local_ai_lab`), the container joins the `infra` network and Caddy
+fronts it as `tracker.home`:
 
-## How It Works
+```bash
+docker compose up -d
+```
 
-1. Select a phase and week to see 7 day cards
-2. Expand a day to see its vocab + grammar topics
-3. Mark topics as done after learning, or skip if already known
-4. Click "Generate & Copy" — Claude generates speaking exercises: role-plays, monologues, discussion prompts
-5. Session 2 is always speaking practice: role-plays, opinion questions, paired discussions
-6. Session 3 (Oral Refresher) uses spaced repetition — all exercises spoken aloud
-7. Sundays: full mock Norskproven B1 muntlig simulation
-8. Tick the day as complete when all 3 sessions are done
+The Caddy and Pi-hole entries live in `local_ai_lab/infra/Caddyfile` and
+`local_ai_lab/infra/dns/02-custom.conf`. After changing the DNS file, `docker restart pihole`.
 
-## Tech Stack
+## Editing content
 
-- React 18 + Vite
-- localStorage for persistence
-- No external API dependencies — all curriculum data is built in
+Edit the markdown in `norsk_daily`, then rebuild:
+
+- `exam/drills-v3.md` — the rules, the five drills and three glossed words per weekday, which clips a week uses, the Sunday question.
+- `exam/tema-familier.md` — themes, oversikt, model answers.
+- `docs/plan-v3.md` — which theme each week gets.
+
+`build.py` refuses to build when a week has the wrong number of drills or the plan and the drills
+disagree about a theme, so a typo in the markdown shows up here, not on the phone.
+
+## History
+
+Versions 1 to 5 were a React curriculum app with a 12-week vocab and grammar schedule and prompt
+generation for Claude. That app was replaced in v6 once the exam was taken; see `RELEASES.md`.

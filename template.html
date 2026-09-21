@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>I dag — norsk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#f3f4f7; --surface:#ffffff; --ink:#1b1e26; --muted:#5b6270; --line:#e3e6ec;
+    --accent:#2c4a78; --code:#eef1f6; --ok:#1f7a5c; --gram:#a8630f; --talk:#3f56b0; --mock:#8a3ea0;
+    --shadow:0 1px 2px rgba(20,24,40,.06),0 4px 16px rgba(20,24,40,.05);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#14161b; --surface:#1c2028; --ink:#eceef2; --muted:#98a0af; --line:#2b303b;
+      --accent:#9db8e6; --code:#12151c; --ok:#5fc4a2; --gram:#e0a552; --talk:#93a3ee; --mock:#c98fdd;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.28);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14161b; --surface:#1c2028; --ink:#eceef2; --muted:#98a0af; --line:#2b303b;
+    --accent:#9db8e6; --code:#12151c; --ok:#5fc4a2; --gram:#e0a552; --talk:#93a3ee; --mock:#c98fdd;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.28);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg); color:var(--ink); font-family:"Public Sans",system-ui,sans-serif; line-height:1.5; padding:16px 16px 56px; -webkit-text-size-adjust:100%}
+  .wrap{max-width:620px; margin:0 auto; display:flex; flex-direction:column; gap:18px}
+  [hidden]{display:none!important}
+
+  .top{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .top h1{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:1.35rem; margin:0}
+  .progress{display:grid; grid-template-columns:repeat(12,1fr); gap:3px; flex:1 1 auto; max-width:220px}
+  .progress span{height:6px; border-radius:3px; background:var(--line)}
+  .progress span.part{background:var(--gram)} .progress span.full{background:var(--ok)} .progress span.now{outline:2px solid var(--accent); outline-offset:1px}
+
+  .week{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow)}
+  .week .nav{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .week .eyebrow{font-size:.76rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+  .week h2{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:1.6rem; margin:2px 0 10px; line-height:1.1; text-wrap:balance}
+  .iconbtn{background:none; border:1px solid var(--line); border-radius:8px; color:var(--accent); font:600 .9rem "Public Sans",sans-serif; padding:4px 10px; cursor:pointer; min-height:32px}
+  .days{display:grid; grid-template-columns:repeat(7,1fr); gap:6px}
+  .day{border:1px solid var(--line); border-radius:9px; padding:7px 3px; text-align:center; font-size:.7rem; line-height:1.2; color:var(--muted); background:none; font-family:inherit; cursor:pointer; min-height:44px}
+  .day b{display:block; font-size:.84rem; color:var(--ink)}
+  .day.done{border-color:var(--ok); color:var(--ok)} .day.done b{color:var(--ok)}
+  .day.now{border-color:var(--accent); border-width:2px; color:var(--accent)} .day.now b{color:var(--accent)}
+  .day.talk{background:var(--code)}
+  .day:focus-visible,.btn:focus-visible,.iconbtn:focus-visible,summary:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+  .today{background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); overflow:hidden}
+  .today header{padding:14px 16px 12px; border-bottom:1px solid var(--line); display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+  .tag{font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:6px; color:#fff; background:var(--gram)}
+  .tag.talk{background:var(--talk)} .tag.mock{background:var(--mock)}
+  .today header h3{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:1.22rem; margin:0; flex:1 1 auto; text-wrap:balance}
+  .today header .min{color:var(--muted); font-size:.9rem; font-variant-numeric:tabular-nums}
+  .step{padding:14px 16px; border-bottom:1px solid var(--line); display:flex; flex-direction:column; gap:8px}
+  .step .lbl{display:flex; align-items:center; gap:9px; font-size:.76rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+  .step .lbl .n{width:22px; height:22px; border-radius:7px; display:inline-grid; place-items:center; background:var(--code); color:var(--ink); font-size:.78rem}
+  .step p{margin:0}
+  .rule{border-left:3px solid var(--gram); padding-left:12px; display:flex; flex-direction:column; gap:5px}
+  .pat{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.84rem; background:var(--code); padding:6px 9px; border-radius:7px; word-break:break-word}
+  .note{font-size:.84rem; color:var(--muted)}
+  audio{width:100%; height:40px}
+  .txt{font-size:.98rem; line-height:1.6}
+  .txt mark{background:none; color:var(--gram); font-weight:700; text-decoration:underline; text-decoration-color:var(--gram); text-decoration-thickness:2px}
+  ul.ord{margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px; font-size:.95rem}
+  ul.ord .gloss{color:var(--muted)} ul.ord .ex{color:var(--ink); font-style:italic}
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin:0}
+  .chips span{background:var(--code); border:1px solid var(--line); border-radius:999px; padding:2px 10px; font-size:.85rem}
+  .q{font-family:"Fraunces",Georgia,serif; font-size:1.15rem; font-weight:600; text-wrap:balance}
+  ol.drill{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:8px}
+  ol.drill li .hint{color:var(--muted); font-style:italic}
+  ol.drill details{display:inline}
+  ol.drill summary{display:inline; cursor:pointer; color:var(--accent); font-size:.85rem; font-weight:600; margin-left:6px; list-style:none}
+  ol.drill summary::-webkit-details-marker{display:none}
+  ol.drill details[open] summary{display:none}
+  ol.drill .fasit{color:var(--ok); font-weight:600}
+  pre{margin:0; background:var(--code); border:1px solid var(--line); border-radius:9px; padding:10px 12px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.8rem; line-height:1.5; white-space:pre-wrap; word-break:break-word}
+  .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .btn{background:var(--accent); color:#fff; border:0; border-radius:9px; padding:9px 16px; font:600 .88rem "Public Sans",sans-serif; cursor:pointer; min-height:40px}
+  .btn.ghost{background:none; color:var(--accent); border:1px solid var(--line)}
+  .btn.done{background:var(--ok); font-size:1rem; padding:12px 18px; width:100%}
+  .btn.undo{background:none; color:var(--muted); border:1px solid var(--line)}
+  .timer{font-variant-numeric:tabular-nums; font-weight:700; font-size:1.3rem; min-width:64px}
+  .foot{padding:14px 16px; background:var(--code); display:flex; flex-direction:column; gap:8px}
+  .foot .next{font-size:.88rem; color:var(--muted)} .foot .next b{color:var(--ink)}
+  details.more{border-top:1px solid var(--line); padding:10px 16px}
+  details.more summary{cursor:pointer; color:var(--accent); font-size:.85rem; font-weight:600}
+  details.more .in{padding-top:10px; display:flex; flex-direction:column; gap:8px}
+  .obox{display:flex; flex-direction:column; gap:6px; font-size:.95rem}
+  textarea{width:100%; min-height:110px; border:1px solid var(--line); border-radius:9px; padding:10px; font:inherit; font-size:.9rem; background:var(--surface); color:var(--ink); resize:vertical}
+  footer{color:var(--muted); font-size:.82rem; text-align:center}
+  @media (prefers-reduced-motion:no-preference){ .day,.progress span{transition:all .15s} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>I dag</h1>
+    <div class="progress" id="progress" aria-label="12 uker"></div>
+  </div>
+
+  <section class="week" aria-label="Uke">
+    <div class="nav">
+      <button class="iconbtn" id="prevw" type="button" aria-label="Forrige uke">‹</button>
+      <div class="eyebrow" id="weekEyebrow"></div>
+      <button class="iconbtn" id="nextw" type="button" aria-label="Neste uke">›</button>
+    </div>
+    <h2 id="weekTitle"></h2>
+    <div class="days" id="days" role="tablist" aria-label="Dager"></div>
+  </section>
+
+  <article class="today" id="today"></article>
+
+  <footer>Innholdet kommer fra <code>norsk_daily</code>. Framdrift lagres bare i denne nettleseren.</footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const KEY = 'tracker-v3';
+let state = {done:{}, gap:{}, view:null};
+try { state = Object.assign(state, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const D = DATA.days, W = 12;
+const slot = (w,d) => w + '-' + d;
+
+function firstOpen(){
+  for (let w=1; w<=W; w++) for (const d of D) if (!state.done[slot(w,d)]) return {w,d};
+  return {w:W, d:'son'};
+}
+let view = (state.view && /^\d+-\w+$/.test(state.view)) ? {w:+state.view.split('-')[0], d:state.view.split('-')[1]} : firstOpen();
+
+function themeFor(w){ const t = DATA.plan[w].theme; return t ? DATA.themes[t] : null; }
+function clipFor(w, i){
+  const dw = DATA.drills[w]; if (dw) return dw.clips[i % dw.clips.length];
+  const t = DATA.themes[((w + i) % 10) + 1]; return Object.keys(t.answers)[0];
+}
+function answerFor(id){ for (const t of Object.values(DATA.themes)) if (t.answers[id]) return {theme:t, ...t.answers[id]}; return null; }
+function markJeg(text){
+  return esc(text).replace(/(^|[.!?…»]\s+)(Jeg\b[^.!?…]*[.!?…]?)/g, (m, a, b) => a + '<mark>' + b + '</mark>');
+}
+function drillsFor(w, d){
+  if (DATA.drills[w]) return DATA.drills[w].days[d].drills;
+  const all = []; for (let k=1;k<=10;k++) all.push(...DATA.drills[k].days[d].drills);
+  const out = []; for (let i=0;i<5;i++) out.push(all[(w*7 + i*11 + D.indexOf(d)*3) % all.length]);
+  return out;
+}
+function wordsFor(w, d){
+  if (DATA.drills[w]) return DATA.drills[w].days[d].words;
+  const all = []; for (let k=1;k<=10;k++) all.push(...DATA.drills[k].days[d].words);
+  const out = []; for (let i=0;i<3;i++) out.push(all[(w*5 + i*7 + D.indexOf(d)) % all.length]);
+  return out;
+}
+function weekWords(w){ const out=[]; if (!DATA.drills[w]) return out; for (const d of D.slice(0,5)) out.push(...DATA.drills[w].days[d].words.map(x=>x.word)); return out; }
+function wordsHtml(words){
+  return `<ul class="ord">${words.map(x => `<li><b>${esc(x.word)}</b> <span class="gloss">— ${esc(x.gloss)}</span><br><span class="ex">${esc(x.example)}</span></li>`).join('')}</ul>`;
+}
+function mockQuestion(w, d){ const p = DATA.pool; return p[(w*13 + D.indexOf(d)*7) % p.length]; }
+function pointsList(){ return '1) setning som starter med «jeg» når en åpner passer, 2) ordstilling i leddsetning (ikke før verbet), 3) preteritum/perfektum, 4) adjektiv- og substantivsamsvar, 5) faste preposisjoner, modalverb + infinitiv og passiv'; }
+
+function promptWeekday(w, d, theme, rule){
+  const t = theme ? theme.title.toLowerCase() : 'blandede tema';
+  return `Tema: ${t}. Dagens grammatikk: ${rule.title}. ${rule.text} Still meg 8 korte spørsmål om temaet. Etter hvert svar: hvis en setning bryter dagens regel, si den riktige setningen, og la meg gjenta den tre ganger. Rett ingenting annet. Ikke forklar regler.`;
+}
+function promptSaturday(theme, w){
+  const t = theme ? theme.title.toLowerCase() : 'de temaene vi har jobbet med';
+  const ww = weekWords(w);
+  const ord = ww.length ? ` Ukas ord, som du skal få meg til å bruke naturlig i samtalen: ${ww.join(', ')}. Noter hvilke jeg brukte selv og hvilke du måtte gi meg.` : '';
+  return `Vi snakker fritt om ${t} i 25 minutter, som to kolleger på lunsj, ikke eksamen. Du spør, jeg svarer, du følger opp med nye spørsmål. Rett meg BARE på disse fem tingene, maks én per svar: ${pointsList()}. Når du retter: si riktig setning, la meg gjenta den tre ganger, gå videre.${ord} Til slutt: de tre setningene jeg bør huske fra i dag, og ukas ord jeg ikke brukte.`;
+}
+function promptSunday(){
+  return `Jeg holder en 2-minutters monolog om et samfunnstema. Hør ferdig uten å avbryte. Så: 1) tre grammatikkfeil som gikk igjen, med riktig setning for hver, 2) tre setninger jeg sa som var gode B1-setninger, 3) to oppfølgingsspørsmål som jeg svarer på. Til slutt en GAP-RAPPORT i dette formatet, kort:\nMØNSTRE\n- …\nFRAMGANG\n- …\nNESTE UKE\n- …`;
+}
+
+function step(n, label, inner){ return `<div class="step"><div class="lbl"><span class="n">${n}</span> ${label}</div>${inner}</div>`; }
+function timerHtml(secs, id){ return `<div class="row"><button class="btn ghost" type="button" data-timer="${secs}" data-for="${id}">Start ${secs>=60? (secs/60)+':00' : secs+' s'}</button><span class="timer" id="${id}">${fmt(secs)}</span></div>`; }
+function fmt(s){ return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+function copyHtml(text){ return `<pre>${esc(text)}</pre><div class="row"><button class="btn" type="button" data-copy>Kopiér</button></div>`; }
+function drillHtml(items){
+  return `<ol class="drill">${items.map(it => `<li>${esc(it.prompt)}${it.hint ? ' → <span class="hint">' + esc(it.hint) + '</span>' : ''} <details><summary>fasit</summary><span class="fasit">${esc(it.fasit)}</span></details></li>`).join('')}</ol>`;
+}
+function nextLabel(w, d){
+  const i = D.indexOf(d);
+  let nw = w, nd = D[i+1];
+  if (!nd) { nw = w+1; nd = 'man'; }
+  if (nw > W) return 'Det var siste økt i planen.';
+  const th = themeFor(nw);
+  const r = DATA.rules[nd];
+  const what = r ? r.title : (nd === 'lor' ? 'fri samtale' : 'kald monolog og logg');
+  return `${nw !== w ? 'Neste uke' : 'I morgen'}: <b>${DATA.dayNames[nd]} · ${what}</b>${th && nw !== w ? ' — ' + esc(th.title) : ''}.`;
+}
+
+function renderWeekday(w, d){
+  const theme = themeFor(w), rule = DATA.rules[d], i = D.indexOf(d);
+  const isMock = w === 12;
+  let body = '';
+  if (isMock){
+    const q = mockQuestion(w, d);
+    body += step(1, 'Ukjent spørsmål · 20 s planlegging', `<p class="q">${esc(q)}</p><p>Tre punkter i hodet. Så to minutter uten stopp. Ta opp lyd på mobilen.</p>${timerHtml(120,'t1')}`);
+    body += step(2, 'Hør igjen · dagens regel', `<div class="rule"><p>${esc(rule.text)}</p><div class="pat">${esc(rule.pattern)}</div></div><p>Spill av opptaket ditt. Tell hvor mange ganger du brøt dagens regel. Si de setningene om igjen riktig.</p>`);
+    body += step(3, 'Fem fra arkivet · 4 min', `<p>${esc(rule.task)}</p>${drillHtml(drillsFor(w,d))}<p class="note">Tre ord fra arkivet</p>${wordsHtml(wordsFor(w,d))}`);
+  } else {
+    const cid = clipFor(w, i), ans = answerFor(cid);
+    body += step(1, 'Regelen · 1 min', `<div class="rule"><p>${esc(rule.text)}</p><div class="pat">${esc(rule.pattern)}</div><p class="note">Kilde: ${esc(rule.source)}</p></div>`);
+    const words = wordsFor(w, d);
+    if (ans) body += step(2, 'Hør og les · 3 min', `<p class="note">${ans.form} · ${esc(ans.q)}</p><audio controls preload="metadata" src="audio/${cid}.mp3"></audio><p class="txt">${d === 'man' ? markJeg(ans.text) : esc(ans.text)}</p>${d === 'man' ? '<p class="note">Understreket = setninger som starter med «jeg». Det er dagens råmateriale.</p>' : ''}<p class="note">Tre ord fra klippet</p>${wordsHtml(words)}`);
+    body += step(3, 'Si om · 5 min', `<p>${esc(rule.task)}</p>${drillHtml(drillsFor(w,d))}`);
+    body += step(4, 'Én kald runde · 1 min', `<p>Snakk om ${theme ? esc(theme.title.toLowerCase()) : 'dagens tema'} i seks setninger. Bruk dagens regel i hver setning, og få inn de tre ordene: <b>${words.map(x=>esc(x.word)).join('</b>, <b>')}</b>. Ta tiden.</p>${timerHtml(60,'t1')}`);
+  }
+  const tag = isMock ? '<span class="tag mock">Mock</span>' : '<span class="tag">Grammatikk</span>';
+  const more = `<details class="more"><summary>Vil du ha mer? ChatGPT-prompt for dagens punkt</summary><div class="in">${copyHtml(promptWeekday(w,d,theme,rule))}</div></details>`
+    + (theme ? `<details class="more"><summary>Oversikt over temaet</summary><div class="in obox">${theme.oversikt.map(o => '<p>' + esc(o) + '</p>').join('')}</div></details>` : '');
+  return `<header>${tag}<h3>${DATA.dayNames[d]} · ${esc(rule.title)}</h3><span class="min">10 min</span></header>${body}${footHtml(w,d)}${more}`;
+}
+
+function renderSaturday(w){
+  const theme = themeFor(w), cid = clipFor(w, 0), ans = answerFor(cid);
+  const ww = weekWords(w);
+  let body = step(1, 'Varm opp · 3 min', `<p>Hør ukas første klipp en gang til, så si mandagens fem setninger uten å se.</p>${ans ? `<audio controls preload="metadata" src="audio/${cid}.mp3"></audio>` : ''}${ww.length ? `<p class="note">Ukas ${ww.length} ord — les dem én gang før du starter</p><p class="chips">${ww.map(x=>'<span>'+esc(x)+'</span>').join('')}</p>` : ''}`);
+  body += step(2, 'ChatGPT voice · 25 min', `<p>Én prompt, hele økta. Rettelser bare på ukas fem punkter, ett om gangen, tre gjentakelser. ChatGPT får ukas ord og skal få dem inn i samtalen.</p>${copyHtml(promptSaturday(theme, w))}`);
+  return `<header><span class="tag talk">Snakk</span><h3>Lørdag · Fri samtale${theme ? ' om ' + esc(theme.title.toLowerCase()) : ''}</h3><span class="min">30 min</span></header>${body}${footHtml(w,'lor')}`;
+}
+
+function renderSunday(w){
+  const dw = DATA.drills[w];
+  const q = dw ? dw.sunday : mockQuestion(w, 'son');
+  const gap = state.gap[w] || '';
+  let body = step(1, 'Ukjent spørsmål · 3 min', `<p class="q">${esc(q)}</p><p>Ta 20 sekunder, tre punkter i hodet, så to minutter uten stopp. Ta opp lyd på mobilen.</p>${timerHtml(120,'t1')}`);
+  body += step(2, 'ChatGPT · 20 min', `<p>Spill av opptaket for ChatGPT voice, eller gjenta det. Så to spørsmål til, og GAP-RAPPORT til slutt.</p>${copyHtml(promptSunday())}`);
+  body += step(3, 'Logg · 5 min', `<p>Lim GAP-RAPPORTEN her. Den lagres i nettleseren; kopier den inn i en Claude-økt så den havner i <code>review/</code>.</p><textarea id="gap" placeholder="MØNSTRE&#10;- …&#10;FRAMGANG&#10;- …&#10;NESTE UKE&#10;- …">${esc(gap)}</textarea><div class="row"><button class="btn ghost" type="button" data-copygap>Kopiér rapporten</button></div>`);
+  return `<header><span class="tag talk">Snakk</span><h3>Søndag · Kald monolog og logg</h3><span class="min">30 min</span></header>${body}${footHtml(w,'son', true)}`;
+}
+
+function footHtml(w, d, weekEnd){
+  const done = !!state.done[slot(w,d)];
+  const btn = done
+    ? `<button class="btn undo" type="button" data-undo>Ferdig ✓ · angre</button>`
+    : `<button class="btn done" type="button" data-done>${weekEnd ? `Ferdig · uke ${w} av ${W} fullført` : 'Ferdig for i dag'}</button>`;
+  return `<div class="foot">${btn}<div class="next">${nextLabel(w,d)}</div></div>`;
+}
+
+function render(){
+  const {w, d} = view;
+  const th = themeFor(w);
+  document.getElementById('weekEyebrow').textContent = `Uke ${w} av ${W}`;
+  document.getElementById('weekTitle').textContent = th ? th.title : DATA.plan[w].title;
+  document.getElementById('prevw').disabled = w <= 1;
+  document.getElementById('nextw').disabled = w >= W;
+  const open = firstOpen();
+  document.getElementById('days').innerHTML = D.map(k => {
+    const r = DATA.rules[k];
+    const lbl = {man:'V2', tir:'leddsetning', ons:'fortid', tor:'samsvar', fre:'modal · prep.', lor:'snakk', son:'monolog'}[k];
+    const cls = ['day', state.done[slot(w,k)] ? 'done' : '', (k===d) ? 'now' : '', (k==='lor'||k==='son') ? 'talk' : ''].join(' ');
+    return `<button class="${cls}" type="button" role="tab" aria-selected="${k===d}" data-day="${k}"><b>${DATA.dayShort[k]}</b>${esc(lbl)}</button>`;
+  }).join('');
+  document.getElementById('progress').innerHTML = Array.from({length:W}, (_,i) => {
+    const n = D.filter(k => state.done[slot(i+1,k)]).length;
+    return `<span class="${n===7?'full':n?'part':''}${i+1===open.w?' now':''}" title="Uke ${i+1}: ${n}/7"></span>`;
+  }).join('');
+  const t = document.getElementById('today');
+  t.innerHTML = d === 'lor' ? renderSaturday(w) : d === 'son' ? renderSunday(w) : renderWeekday(w, d);
+  state.view = slot(w,d); save();
+  window.scrollTo({top:0});
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.day){ view = {w:view.w, d:b.dataset.day}; render(); }
+  else if (b.id === 'prevw'){ view = {w:Math.max(1,view.w-1), d:view.d}; render(); }
+  else if (b.id === 'nextw'){ view = {w:Math.min(W,view.w+1), d:view.d}; render(); }
+  else if (b.hasAttribute('data-done')){ state.done[slot(view.w,view.d)] = Date.now(); save(); view = firstOpen(); render(); }
+  else if (b.hasAttribute('data-undo')){ delete state.done[slot(view.w,view.d)]; save(); render(); }
+  else if (b.hasAttribute('data-copy')){ copy(b.parentElement.previousElementSibling.textContent, b); }
+  else if (b.hasAttribute('data-copygap')){ copy(document.getElementById('gap').value, b); }
+  else if (b.dataset.timer){ runTimer(+b.dataset.timer, document.getElementById(b.dataset.for), b); }
+});
+document.addEventListener('input', e => { if (e.target.id === 'gap'){ state.gap[view.w] = e.target.value; save(); } });
+
+function copy(text, b){
+  const ok = () => { const o = b.textContent; b.textContent = 'Kopiert ✓'; setTimeout(() => b.textContent = o, 1500); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, () => fallback(text, ok));
+  else fallback(text, ok);
+}
+function fallback(t, ok){ const ta = document.createElement('textarea'); ta.value = t; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch(e){} document.body.removeChild(ta); ok(); }
+
+let tick = null;
+function runTimer(secs, el, b){
+  if (tick){ clearInterval(tick); tick = null; }
+  let left = secs; el.textContent = fmt(left); b.textContent = 'Stopp';
+  tick = setInterval(() => {
+    left--; el.textContent = fmt(Math.max(0,left));
+    if (left <= 0){ clearInterval(tick); tick = null; el.textContent = 'Ferdig'; b.textContent = 'Igjen'; if (navigator.vibrate) navigator.vibrate(200); }
+  }, 1000);
+  b.onclick = e => { if (tick){ e.stopPropagation(); clearInterval(tick); tick = null; b.textContent = 'Start igjen'; b.onclick = null; } };
+}
+
+render();
+</script>
+</body>
+</html>

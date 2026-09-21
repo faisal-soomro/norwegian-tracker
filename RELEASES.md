@@ -1,3 +1,28 @@
+# Releases
+
+## v6.0 — «I dag»: static page generated from norsk_daily (September 2026)
+
+The exam was taken on 21 September 2026. The React curriculum app is replaced by a single generated
+page that follows `norsk_daily/docs/plan-v3.md`: one theme per week for twelve weeks, ten minutes of
+spoken grammar on weekdays, thirty minutes of talking on Saturday and Sunday.
+
+### Changes
+- `build.py` reads the plan, the theme families with their 40 model answers, the weekly drill file
+  and the learnnorsk question inventory from `norsk_daily`, and writes `site/index.html` plus the
+  40 audio clips. No dependencies, no build tooling.
+- Weekday view: rule, one model answer with audio (Monday underlines the «jeg»-initial sentences),
+  three words from the clip with gloss and example, five transformation drills with folded answer
+  keys, a 60-second cold round that must use the three words, Ferdig.
+- Saturday: warm-up clip, the week's 15 words, and a 25-minute ChatGPT voice prompt that corrects only
+  the week's five points and works the 15 words into the conversation.
+- Sunday: unseen question, 2-minute timer, ChatGPT prompt ending in a GAP-RAPPORT, a text box that
+  keeps the report in localStorage.
+- Weeks 11 and 12: repetition from the drill archive, then daily mock questions from the full inventory.
+- Progress is a queue in localStorage. Day chips and week arrows browse without changing the queue.
+- Served by `nginx` on bulbul as `tracker.home` (compose file included). React, Vite and npm are gone.
+
+---
+
 # Release Notes
 
 ---
