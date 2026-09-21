@@ -19,7 +19,7 @@ spoken grammar on weekdays, thirty minutes of talking on Saturday and Sunday.
   keeps the report in localStorage.
 - Weeks 11 and 12: repetition from the drill archive, then daily mock questions from the full inventory.
 - Progress is a queue in localStorage. Day chips and week arrows browse without changing the queue.
-- Served by `nginx` on bulbul as `tracker.home` (compose file included). React, Vite and npm are gone.
+- Served by `nginx` on bulbul as `norsk.home`, replacing the archived scenario viewer (compose file included). React, Vite and npm are gone.
 
 ---
 

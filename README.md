@@ -43,14 +43,14 @@ python3 -m http.server 8765 --directory site
 ```
 
 On bulbul (the fleet gateway in `local_ai_lab`), the container joins the `infra` network and Caddy
-fronts it as `tracker.home`:
+fronts it as `norsk.home` (the old scenario viewer container `norsk_daily` can be stopped):
 
 ```bash
 docker compose up -d
 ```
 
-The Caddy and Pi-hole entries live in `local_ai_lab/infra/Caddyfile` and
-`local_ai_lab/infra/dns/02-custom.conf`. After changing the DNS file, `docker restart pihole`.
+The Caddy entry lives in `local_ai_lab/infra/Caddyfile`; the `norsk.home` DNS record already exists, so
+no Pi-hole change is needed. Reload Caddy after pulling the Caddyfile.
 
 ## Editing content
 
