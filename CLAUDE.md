@@ -38,7 +38,8 @@ the retired React app.
 ## Deploy on bulbul (fleet gateway in `local_ai_lab`)
 
 Caddy on bulbul serves the tracker as **`norsk.home`** (Caddyfile already points there, commit
-e52a573 in `local_ai_lab`). The job is: clone the repo, build the image from the Dockerfile, run it
+e52a573 in `local_ai_lab`). This is the only norsk app on bulbul now; the scenario viewer and the
+grammar app were pruned. The job is: clone the repo, build the image from the Dockerfile, run it
 with compose. Nothing else.
 
 ```bash
