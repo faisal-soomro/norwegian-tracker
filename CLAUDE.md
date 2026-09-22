@@ -15,7 +15,8 @@ thirty minutes of talking on weekends. The plan and every word of content live i
 | `build.py` | Reads the norsk_daily markdown, writes `site/index.html`, copies the 40 clips to `site/audio/`. Stdlib only. Fails loudly on malformed content. |
 | `template.html` | The page: CSS, markup, and the JS that renders a day from the embedded JSON. |
 | `site/` | **Generated output, committed on purpose** so the server needs nothing but this repo. About 20 MB, mostly mp3. |
-| `docker-compose.yml` | `nginx:alpine` serving `site/` on the `infra` network as container `norsk_tracker`. |
+| `Dockerfile` | Two lines: `nginx:alpine` + `COPY site/`. |
+| `docker-compose.yml` | Builds that image and runs it on the `infra` network as container `norsk_tracker`. |
 | `README.md`, `RELEASES.md` | User docs and version history. |
 
 Progress (which days are Ferdig, the Sunday GAP text) lives only in the phone browser's
@@ -36,26 +37,21 @@ the retired React app.
 
 ## Deploy on bulbul (fleet gateway in `local_ai_lab`)
 
-Caddy on bulbul serves the tracker as **`norsk.home`**, replacing the archived norsk_daily scenario
-viewer that used to live there. Steps, in order:
+Caddy on bulbul serves the tracker as **`norsk.home`** (Caddyfile already points there, commit
+e52a573 in `local_ai_lab`). The job is: clone the repo, build the image from the Dockerfile, run it
+with compose. Nothing else.
 
 ```bash
-# 1. lab repo: Caddyfile already points norsk.home -> norsk_tracker:80 (commit e52a573)
-cd ~/dev_workspace/local_ai_lab && git pull
-docker exec caddy caddy reload --config /etc/caddy/Caddyfile
-
-# 2. this repo, from the branch
 cd ~/dev_workspace && git clone -b v6-static-tracker https://github.com/faisal-soomro/norwegian-tracker.git
-cd norwegian-tracker && docker compose up -d
-
-# 3. stop the old scenario viewer so norsk_daily:3000 is not left running
-docker stop norsk_daily && docker rm norsk_daily
+cd norwegian-tracker && docker compose up -d --build
+docker exec caddy caddy reload --config /etc/caddy/Caddyfile
+docker stop norsk_daily && docker rm norsk_daily      # the old scenario viewer that had norsk.home
 ```
 
 No Pi-hole change: the `norsk.home` record already exists. No Python on bulbul: `site/` is prebuilt.
 
-**Updating bulbul later** is `git pull` in `~/dev_workspace/norwegian-tracker`. nginx serves the bind
-mount live, so no restart. Check with `curl -s -o /dev/null -w "%{http_code}\n" http://norsk.home/`.
+**Updating bulbul later:** `git pull && docker compose up -d --build` in that folder.
+Check with `curl -s -o /dev/null -w "%{http_code}\n" -H "Host: norsk.home" http://127.0.0.1/`.
 
 ## Changing content (on the Mac, where norsk_daily is)
 
@@ -66,7 +62,7 @@ mount live, so no restart. Check with `curl -s -o /dev/null -w "%{http_code}\n" 
    - which theme a week gets → `docs/plan-v3.md`
 2. `python3 build.py` here. It refuses to build if a week has other than five drills or three `ord:`
    lines per weekday, or if plan and drills disagree on a theme. Fix the markdown, not the script.
-3. Ask Faisal before committing `site/` and pushing the branch; then `git pull` on bulbul.
+3. Ask Faisal before committing `site/` and pushing the branch; then `git pull && docker compose up -d --build` on bulbul.
 
 `NORSK_DAILY=/path/to/norsk_daily python3 build.py` if the repos are not side by side.
 

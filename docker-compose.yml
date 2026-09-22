@@ -1,0 +1,12 @@
+services:
+  norsk_tracker:
+    build: .
+    container_name: norsk_tracker
+    restart: unless-stopped
+    networks:
+      - infra
+
+networks:
+  infra:
+    name: infra
+    external: true

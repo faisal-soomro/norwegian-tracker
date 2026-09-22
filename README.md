@@ -31,30 +31,28 @@ The audio must exist there first: `./scripts/generate-modellsvar-audio.sh` in `n
 python3 build.py
 ```
 
-Writes `site/index.html` and copies the 40 clips into `site/audio/`. `site/` is committed, so the
-server needs nothing but this repo.
+Writes `site/index.html` and copies the 40 clips into `site/audio/`. `site/` is committed; the
+Dockerfile copies it into an nginx image, so the server needs nothing but this repo and Docker.
 
 ## Run
 
-Locally:
+Locally, without Docker:
 
 ```bash
 python3 -m http.server 8765 --directory site
 ```
 
-On bulbul (the fleet gateway in `local_ai_lab`), the container joins the `infra` network and Caddy
-serves it as **`norsk.home`**, where the archived norsk_daily scenario viewer used to be. Deploy from
-the working branch; no Python and no Pi-hole change needed on the box:
+On bulbul (the fleet gateway in `local_ai_lab`), Caddy serves it as **`norsk.home`**. Clone, build,
+run:
 
 ```bash
-cd ~/dev_workspace/local_ai_lab && git pull
-docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 cd ~/dev_workspace && git clone -b v6-static-tracker https://github.com/faisal-soomro/norwegian-tracker.git
-cd norwegian-tracker && docker compose up -d
-docker stop norsk_daily && docker rm norsk_daily     # the old scenario viewer
+cd norwegian-tracker && docker compose up -d --build
+docker exec caddy caddy reload --config /etc/caddy/Caddyfile
+docker stop norsk_daily && docker rm norsk_daily      # the old scenario viewer
 ```
 
-Later updates: `git pull` in that folder. nginx serves the bind mount live.
+Updates: `git pull && docker compose up -d --build` in that folder.
 
 ## Editing content
 
